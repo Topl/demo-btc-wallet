@@ -9,6 +9,10 @@ export default defineConfig({
   plugins: [react()],
   test: {
     globals: true,
-    environment: 'jsdom'
+    environment: 'jsdom',
+    reporters: ['junit'],
+    outputFile: {
+      junit: 'test-results/junit.xml',
+    }
   },
 })
