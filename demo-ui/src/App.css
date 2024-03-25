@@ -1,7 +1,7 @@
 #root {
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
+  width: 100%;
+  position: absolute;
+  top: 0;
 }
 
 .nav-link.active {
@@ -30,4 +30,9 @@
   -webkit-user-select: none; /* Safari */
   -ms-user-select: none; /* IE 10 and IE 11 */
   user-select: none; /* Standard syntax */
+}
+
+form .accordion-button {
+  text-align: right;
+  justify-items: right;
 }
