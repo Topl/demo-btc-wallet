@@ -3,3 +3,31 @@
   height: 100vh;
   overflow: hidden;
 }
+
+.nav-link.active {
+  pointer-events: none;
+}
+
+#sidebar .nav-link.active {
+  background-color: var(--bs-gray-300);
+  color: var(--bs-gray-900);
+}
+
+#topbar .nav-link {
+  color: var(--bs-gray-600);
+}
+
+#topbar .nav-link.active {
+  color: var(--bs-gray-900);
+  font-weight: 600;
+}
+
+#topbar .nav-link:hover:not(.active) {
+  color: var(--bs-gray-900);
+}
+
+.nav-link,.logo-text {
+  -webkit-user-select: none; /* Safari */
+  -ms-user-select: none; /* IE 10 and IE 11 */
+  user-select: none; /* Standard syntax */
+}
