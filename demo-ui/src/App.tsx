@@ -1,35 +1,35 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import Button from 'react-bootstrap/Button';
 import './App.css'
+import Transfer from './views/Transfer';
+import Col from 'react-bootstrap/Col';
+import Nav from 'react-bootstrap/Nav';
+import Row from 'react-bootstrap/Row';
+import Tab from 'react-bootstrap/Tab';
+
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <Button onClick={() => setCount((count) => count + 1)} as='a'>
-          count is {count}
-        </Button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    <div className='container-fluid w-100 m-0 p-0'>
+    <Row>
+      <Col xs={3}>Demo App</Col>
+      <Col>Nav Bar</Col>
+    </Row>
+    <Tab.Container defaultActiveKey="transfer">
+      <Row className='vh-100'>
+        <Col xs={3}>
+          <Nav className="flex-column">
+            <Nav.Item>
+              <Nav.Link eventKey="transfer">Transfer BTC</Nav.Link>
+            </Nav.Item>
+          </Nav>
+        </Col>
+        <Col>
+          <Tab.Content>
+            <Tab.Pane eventKey="transfer"><Transfer/></Tab.Pane>
+          </Tab.Content>
+        </Col>
+      </Row>
+    </Tab.Container>
+    </div>
   )
 }
 
