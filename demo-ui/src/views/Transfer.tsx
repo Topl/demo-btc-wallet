@@ -2,16 +2,28 @@ import {FunctionComponent} from 'react';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import Card from 'react-bootstrap/Card';
+import Container from 'react-bootstrap/Container';
 
 const Transfer: FunctionComponent =  () => {
-  return <div>
-    <h1>Transfer BTC</h1>
-    <Card>
+  return <Container>
+    <h1 className='py-4 text-center'>Transfer BTC</h1>
+    <Card className='col-8 offset-2'>
       <Card.Header>Transfer BTC for Peg-in</Card.Header>
       <Card.Body>
         <Form>
+          <Form.Group className="mb-3" controlId="walletName">
+            <Form.Label>Wallet</Form.Label>
+            <Form.Select aria-label="Select Wallet">
+              <option>Select Loaded Wallet</option>
+              <option value="wallet1">TestWallet</option>
+              <option value="wallet2">dummy-wallet</option>
+            </Form.Select>
+            <Form.Text className="text-muted">
+              The wallet where the BTC will be sent from.
+            </Form.Text>
+          </Form.Group>
           <Form.Group className="mb-3" controlId="recipientAddress">
-            <Form.Label>Address</Form.Label>
+            <Form.Label>Recipient Address</Form.Label>
             <Form.Control type="text" placeholder="bcrt1q58..." />
             <Form.Text className="text-muted">
               The address to send BTC to.
@@ -26,12 +38,12 @@ const Transfer: FunctionComponent =  () => {
             </Form.Text>
           </Form.Group>
           <Button variant="primary" type="submit">
-            Send Funds
+            Send
           </Button>
         </Form>
       </Card.Body>
     </Card>
-      </div>
+      </Container>
 }
 
 export default Transfer
