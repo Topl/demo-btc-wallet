@@ -2,13 +2,12 @@ import {FunctionComponent} from 'react';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import Card from 'react-bootstrap/Card';
-import Container from 'react-bootstrap/Container';
 
 const CreateWallet: FunctionComponent =  () => {
-  return <Container>
+  return <div>
     <h1 className='py-4 text-center'>Create Wallet</h1>
-    <Card className='col-8 offset-2'>
-      <Card.Header>Create a New Wallet</Card.Header>
+    <Card className='w-1/2 m-auto'>
+      <Card.Header className='!bg-slate-100'>Create a New Wallet</Card.Header>
       <Card.Body>
         <Form>
           <Form.Group className="mb-3" controlId="walletName">
@@ -24,7 +23,7 @@ const CreateWallet: FunctionComponent =  () => {
         </Form>
       </Card.Body>
     </Card>
-      </Container>
+  </div>
 }
 
 export default CreateWallet

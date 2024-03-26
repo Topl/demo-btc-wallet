@@ -1,9 +1,7 @@
 import './App.css'
 
-import Tab from 'react-bootstrap/Tab';
 import TopBar from './components/TopBar';
-import SideBar from './components/SideBar';
-import ContentPane from './components/ContentPane';
+import TabController from './components/TabController';
 
 
 function App() {
@@ -14,10 +12,7 @@ function App() {
         <TopBar/>
       </div>
       <div className='basis-full flex bg-white'>
-        <Tab.Container defaultActiveKey="transfer">
-          <SideBar/>
-          <ContentPane/>
-        </Tab.Container>
+        <TabController/>
       </div>
     </div>
   )
