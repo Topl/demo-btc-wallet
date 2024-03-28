@@ -29,9 +29,7 @@ object Main extends IOApp {
       .allocated
       .handleErrorWith { e =>
         e.printStackTrace()
-        IO {
-          Left(e.getMessage)
-        }
+        IO(e.getMessage)
       } >> (IO.println(s"Server started on ${ServerConfig.host}:${ServerConfig.port}") *> IO.never)
   }
 

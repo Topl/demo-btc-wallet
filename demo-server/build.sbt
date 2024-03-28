@@ -6,8 +6,11 @@ ThisBuild / organization     := "co.topl"
 lazy val root = (project in file("."))
   .settings(
     name := "demo-server",
-    libraryDependencies ++= scalaTest ++ http4s ++ cats ++ log4cats
+    libraryDependencies ++= scalaTest ++ http4s ++ cats ++ log4cats ++ slf4j
   )
+
+// Development mode: reloads the server when you change the code. Use "sbt dev" to run.
+addCommandAlias("dev", "~reStart")
 
 // Uncomment the following for publishing to Sonatype.
 // See https://www.scala-sbt.org/1.x/docs/Using-Sonatype.html for more detail.

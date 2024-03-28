@@ -5,6 +5,7 @@ object Dependencies {
   lazy val catsCoreVersion = "2.10.0"
   lazy val catsEffectVersion = "3.5.1"
   lazy val log4catsVersion = "2.6.0"
+  lazy val slf4jVersion = "2.0.12"
 
   lazy val scalaTest: Seq[ModuleID] = Seq("org.scalatest" %% "scalatest" % "3.0.5" % Test)
 
@@ -23,5 +24,10 @@ object Dependencies {
   lazy val log4cats: Seq[ModuleID] = Seq(
     "org.typelevel" %% "log4cats-core" % log4catsVersion,
     "org.typelevel" %% "log4cats-slf4j" % log4catsVersion
+  )
+
+  lazy val slf4j: Seq[ModuleID] = Seq(
+    "org.slf4j" % "slf4j-api" % slf4jVersion,
+    "org.slf4j" % "slf4j-simple" % slf4jVersion
   )
 }
