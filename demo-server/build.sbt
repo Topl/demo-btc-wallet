@@ -6,7 +6,7 @@ ThisBuild / organization     := "co.topl"
 lazy val root = (project in file("."))
   .settings(
     name := "demo-server",
-    libraryDependencies ++= scalaTest ++ http4s ++ cats ++ log4cats ++ slf4j
+    libraryDependencies ++= scalaTest ++ http4s ++ cats ++ log4cats ++ slf4j ++ circe
   )
 
 // Development mode: reloads the server when you change the code. Use "sbt dev" to run.

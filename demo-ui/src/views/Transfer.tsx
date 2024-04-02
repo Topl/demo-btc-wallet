@@ -11,9 +11,9 @@ const Transfer: FunctionComponent =  () => {
       <Card.Body>
         <Form>
           <Form.Group className="mb-3" controlId="walletName">
-            <Form.Label>Wallet</Form.Label>
+            <Form.Label>Local Wallet</Form.Label>
             <Form.Select aria-label="Select Wallet">
-              <option>Select Loaded Wallet</option>
+              <option>Select Local Wallet</option>
               <option value="wallet1">TestWallet</option>
               <option value="wallet2">dummy-wallet</option>
             </Form.Select>
