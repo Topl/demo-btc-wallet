@@ -1,41 +1,38 @@
 import Dependencies._
+import scala.sys.process.Process
 
-ThisBuild / scalaVersion     := "2.12.18"
-ThisBuild / organization     := "co.topl"
-
-lazy val root = (project in file("."))
-  .settings(
-    name := "demo-server",
-    libraryDependencies ++= scalaTest ++ http4s ++ cats ++ log4cats ++ slf4j ++ circe
+inThisBuild(
+  List(
+    homepage := Some(url("https://github.com/Topl/demo-btc-wallet")),
+    licenses := Seq("MPL2.0" -> url("https://www.mozilla.org/en-US/MPL/2.0/")),
+    scalaVersion := "2.12.18"
   )
+)
+
+lazy val noPublish = Seq(
+  publishLocal / skip := true,
+  publish / skip := true
+)
+
+val importClient = taskKey[Unit]("Import client (frontend)")
+
+importClient := {
+  // Copy vite output into server resources, where it can be accessed by the server,
+  // even after the server is packaged in a fat jar.
+  IO.copyDirectory(
+    source = (root / baseDirectory).value / ".." /  "demo-ui" / "dist",
+    target = (root / baseDirectory).value / "src" / "main" / "resources" / "static"
+  )
+}
+
+lazy val root = project
+  .in(file("."))
+  .settings(
+    organization := "co.topl",
+    name := "topl-demo-btc-wallet",
+    libraryDependencies ++= scalaTest ++ http4s ++ cats ++ log4cats ++ slf4j ++ circe
+    )
+    .settings(noPublish)
 
 // Development mode: reloads the server when you change the code. Use "sbt dev" to run.
-addCommandAlias("dev", "~reStart")
-
-// Uncomment the following for publishing to Sonatype.
-// See https://www.scala-sbt.org/1.x/docs/Using-Sonatype.html for more detail.
-
-// ThisBuild / description := "Some descripiton about your project."
-// ThisBuild / licenses    := List("Apache 2" -> new URL("http://www.apache.org/licenses/LICENSE-2.0.txt"))
-// ThisBuild / homepage    := Some(url("https://github.com/example/project"))
-// ThisBuild / scmInfo := Some(
-//   ScmInfo(
-//     url("https://github.com/your-account/your-project"),
-//     "scm:git@github.com:your-account/your-project.git"
-//   )
-// )
-// ThisBuild / developers := List(
-//   Developer(
-//     id    = "Your identifier",
-//     name  = "Your Name",
-//     email = "your@email",
-//     url   = url("http://your.url")
-//   )
-// )
-// ThisBuild / pomIncludeRepository := { _ => false }
-// ThisBuild / publishTo := {
-//   val nexus = "https://oss.sonatype.org/"
-//   if (isSnapshot.value) Some("snapshots" at nexus + "content/repositories/snapshots")
-//   else Some("releases" at nexus + "service/local/staging/deploy/maven2")
-// }
-// ThisBuild / publishMavenStyle := true
+addCommandAlias("dev", "importClient ; ~reStart")

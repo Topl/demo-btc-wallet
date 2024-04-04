@@ -58,3 +58,5 @@ coursier
 
 # Sourcegraph specific
 index.scip
+
+**/resources/static/*
