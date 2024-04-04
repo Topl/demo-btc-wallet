@@ -26,7 +26,7 @@ const Transfer: FunctionComponent =  () => {
   return <div>
     <h1 className='py-4 text-center'>Transfer BTC</h1>
     <Card className='w-1/2 m-auto'>
-      <Card.Header className='!bg-slate-100'>Transfer BTC from default local wallet</Card.Header>
+      <Card.Header className='!bg-slate-100'>Transfer BTC for Peg-in from default local wallet</Card.Header>
       <Card.Body>
         <Form onSubmit={handleSubmit}>
           <Form.Group className="mb-3" controlId="walletName" hidden>

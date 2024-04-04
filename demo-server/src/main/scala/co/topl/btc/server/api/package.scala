@@ -8,7 +8,6 @@ package object api {
 
   // Define the API service routes
   val ApiService: HttpRoutes[IO] = HttpRoutes.of[IO] {
-    case r @ GET -> Root / "transfer" => Ok("lol")
     case r @ POST -> Root / "transfer" => TransferRequest.handler(r)
   }
 }
