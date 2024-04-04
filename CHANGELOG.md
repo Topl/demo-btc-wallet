@@ -8,3 +8,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased] - YYYY-MM-DD - TODO replace date after release 
 
 - Initialized the front end for the demo application
+- Initialized the back end for the demo application
