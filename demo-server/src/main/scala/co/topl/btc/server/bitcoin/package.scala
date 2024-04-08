@@ -4,8 +4,10 @@ import akka.actor.ActorSystem
 import org.bitcoins.core.config.NetworkParameters
 import org.bitcoins.rpc.config.{BitcoindAuthCredentials, BitcoindInstanceLocal, BitcoindInstanceRemote}
 import org.bitcoins.rpc.client.common.BitcoindRpcClient
+import org.bitcoins.rpc.config.BitcoindInstance
 import org.bitcoins.tor.Socks5ProxyParams
 import cats.effect.IO
+import co.topl.btc.server.bitcoin.BitcoindExtended
 
 import java.io.File
 import java.net.URI
@@ -26,7 +28,7 @@ package object bitcoin {
       host:        String,
       credentials: BitcoindAuthCredentials,
       binary:      File
-    ): BitcoindRpcClient = BitcoindRpcClient(
+    ): BitcoindExtended = BitcoindExtended(
       BitcoindInstanceLocal(
         network = network,
         uri = new URI(s"$host:${network.port}"),
@@ -50,7 +52,7 @@ package object bitcoin {
       host:        String,
       credentials: BitcoindAuthCredentials,
       proxyParams: Option[Socks5ProxyParams] = None
-    ): BitcoindRpcClient = BitcoindRpcClient(
+    ): BitcoindExtended = BitcoindExtended(
       BitcoindInstanceRemote(
         network = network,
         uri = new URI(s"$host:${network.port}"),
@@ -60,5 +62,5 @@ package object bitcoin {
       )
     )
 
-    def onStartup(bitcoind: BitcoindRpcClient): IO[Unit] = ???
+    def onStartup(bitcoind: BitcoindExtended): IO[Unit] = ???
 }
