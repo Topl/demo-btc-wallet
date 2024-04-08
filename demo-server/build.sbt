@@ -1,6 +1,8 @@
 import Dependencies._
 import scala.sys.process.Process
 
+lazy val scalacVersion = "2.13.12"
+
 inThisBuild(
   List(
     homepage := Some(url("https://github.com/Topl/demo-btc-wallet")),
@@ -28,9 +30,10 @@ importClient := {
 lazy val root = project
   .in(file("."))
   .settings(
+    scalaVersion := scalacVersion,
     organization := "co.topl",
     name := "topl-demo-btc-wallet",
-    libraryDependencies ++= scalaTest ++ http4s ++ cats ++ log4cats ++ slf4j ++ circe
+    libraryDependencies ++= http4s ++ cats ++ log4cats ++ slf4j ++ circe ++ btc ++ scopt
     )
     .settings(noPublish)
 
