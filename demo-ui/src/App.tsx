@@ -2,7 +2,9 @@ import './App.css'
 
 import TopBar from './components/TopBar';
 import TabController from './components/TabController';
+import { ToastContainer } from 'react-toastify';
 
+import 'react-toastify/dist/ReactToastify.css';
 
 function App() {
   return (
@@ -14,6 +16,17 @@ function App() {
       <div className='basis-full flex bg-white'>
         <TabController/>
       </div>
+      <ToastContainer 
+        position="bottom-right"
+        autoClose={6000}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+      />
     </div>
   )
 }

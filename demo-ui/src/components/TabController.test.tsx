@@ -7,29 +7,19 @@ describe('Tab Links Correctly Display Pane', () => {
   it('Initial Active State (Transfer BTC)', () => {
     render(<TabController />);
     expect(screen.getByRole("tabpanel", { name: /transfer/i})).toHaveClass('show')
-    expect(screen.getByRole("tabpanel", { name: /create/i})).not.toHaveClass('show')
-    expect(screen.getByRole("tabpanel", { name: /load/i})).not.toHaveClass('show')
+    expect(screen.getByRole("tabpanel", { name: /view/i})).not.toHaveClass('show')
   })
-  it('Create Wallet clicked', () => {
+  it('View Wallet clicked', () => {
     render(<TabController />);
-    act(() => screen.getByRole("tab", { name: "Create Wallet"}).click());
+    act(() => screen.getByRole("tab", { name: "View Wallet"}).click());
     expect(screen.getByRole("tabpanel", { name: /transfer/i})).not.toHaveClass('show')
-    expect(screen.getByRole("tabpanel", { name: /create/i})).toHaveClass('show')
-    expect(screen.getByRole("tabpanel", { name: /load/i})).not.toHaveClass('show')
-  })
-  it('Load Wallet clicked', () => {
-    render(<TabController />);
-    act(() => screen.getByRole("tab", { name: "Load Wallet"}).click())
-    expect(screen.getByRole("tabpanel", { name: /transfer/i})).not.toHaveClass('show')
-    expect(screen.getByRole("tabpanel", { name: /create/i})).not.toHaveClass('show')
-    expect(screen.getByRole("tabpanel", { name: /load/i})).toHaveClass('show')
+    expect(screen.getByRole("tabpanel", { name: /view/i})).toHaveClass('show')
   })
   it('Transfer BTC unclicked, then clicked', () => {
     render(<TabController />);
-    act(() => screen.getByRole("tab", { name: /create/i}).click())
+    act(() => screen.getByRole("tab", { name: /view/i}).click())
     act(() => screen.getByRole("tab", { name: /transfer/i}).click())
     expect(screen.getByRole("tabpanel", { name: /transfer/i})).toHaveClass('show')
-    expect(screen.getByRole("tabpanel", { name: /create/i})).not.toHaveClass('show')
-    expect(screen.getByRole("tabpanel", { name: /load/i})).not.toHaveClass('show')
+    expect(screen.getByRole("tabpanel", { name: /view/i})).not.toHaveClass('show')
   })
 })
