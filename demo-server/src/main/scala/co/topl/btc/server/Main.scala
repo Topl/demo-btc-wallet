@@ -43,7 +43,7 @@ object Main extends IOApp {
   def runWithArgs(args: Params): IO[ExitCode] = {
     val bitcoindInstance = remoteConnection(
       RegTest, 
-      args.bitcoindHost, 
+      args.bitcoindUrl, 
       PasswordBased(args.bitcoindUser, args.bitcoindPassword)
     )
     (for {

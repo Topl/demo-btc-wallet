@@ -3,7 +3,7 @@ package co.topl.btc.server
 import scopt.OParser
 
 final case class Params(
-  bitcoindHost: String = "http://localhost", 
+  bitcoindUrl: String = "http://localhost", 
   bitcoindUser: String = "", 
   bitcoindPassword: String = ""
 )
@@ -14,10 +14,10 @@ object Params {
     import builder._
     OParser.sequence(
       programName("demo-btc-wallet"),
-      opt[String]("btc-host")
-        .action((x, c) => c.copy(bitcoindHost = x))
+      opt[String]("btc-url")
+        .action((x, c) => c.copy(bitcoindUrl = x))
         .text(
-          "The host to connect to a bitcoind instance. (default: http://localhost)"
+          "The URL to connect to a bitcoind instance. (default: http://localhost)"
         ),
       opt[String]("btc-user")
         .required()
