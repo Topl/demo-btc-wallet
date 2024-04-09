@@ -32,6 +32,6 @@ cd ../demo-server
 sbt dev
 ```
 
-This copies the front end app into the server's resources directory, and starts the server on `localhost:3000`.
+This copies the front end app into the server's resources directory, and starts the server on `localhost:3002`.
 
-You can access the app (now connected to a backend) at `localhost:3000`.
+You can access the app (now connected to a backend) at `localhost:3002`.

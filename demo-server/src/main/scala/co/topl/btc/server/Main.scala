@@ -12,9 +12,16 @@ import cats.effect.IO
 import cats.effect.IOApp
 import cats.data.Kleisli
 import org.typelevel.log4cats.slf4j.Slf4jLogger
+import co.topl.btc.server.bitcoin.remoteConnection
+import org.bitcoins.core.config.RegTest
+import org.bitcoins.rpc.client.common.BitcoindRpcClient
+import org.bitcoins.rpc.config.BitcoindAuthCredentials.PasswordBased
+import scopt.OParser
 
-import co.topl.btc.server.api.ApiService
+import co.topl.btc.server.api.apiService
 import org.http4s.dsl.impl.Responses
+import co.topl.btc.server.bitcoin.onStartup
+import co.topl.btc.server.bitcoin.BitcoindExtended
 
 object Main extends IOApp {
   def webUI() = HttpRoutes.of[IO] { case request @ GET -> Root =>
@@ -22,25 +29,43 @@ object Main extends IOApp {
       .fromResource("/static/index.html", Some(request))
       .getOrElseF(InternalServerError())
   }
-  val router = 
-    Router.define("/api" -> ApiService, "/" -> webUI())(default = resourceServiceBuilder[IO]("/static").toRoutes)
-  def run(args: List[String]): IO[ExitCode] =
-    EmberServerBuilder
-      .default[IO]
-      .withIdleTimeout(ServerConfig.idleTimeOut)
-      .withHost(ServerConfig.host)
-      .withPort(ServerConfig.port)
-      .withHttpApp(
-        Kleisli[IO, Request[IO], Response[IO]] { request =>
-          router.run(request).getOrElse(Response.notFound)
-        }
-      )
-      .withLogger(Slf4jLogger.getLogger[IO])
-      .build
-      .allocated
-      .handleErrorWith { e =>
-        e.printStackTrace()
-        IO(e.getMessage)
-      } >> (IO.println(s"Server started on ${ServerConfig.host}:${ServerConfig.port}") *> IO.never)
+  def router(bitcoind: BitcoindExtended) = 
+    Router.define("/api" -> apiService(bitcoind), "/" -> webUI())(default = resourceServiceBuilder[IO]("/static").toRoutes)
+
+  override def run(args: List[String]): IO[ExitCode] = Params.parseParams(args) match {
+    case Some(config) =>
+      runWithArgs(config)
+    case None =>
+      IO.consoleForIO.errorln("Invalid arguments") *>
+        IO(ExitCode.Error)
+  }
+
+  def runWithArgs(args: Params): IO[ExitCode] = {
+    val bitcoindInstance = remoteConnection(
+      RegTest, 
+      args.bitcoindUrl, 
+      PasswordBased(args.bitcoindUser, args.bitcoindPassword)
+    )
+    (for {
+      _ <- onStartup(bitcoindInstance)
+      _ <- EmberServerBuilder
+        .default[IO]
+        .withIdleTimeout(ServerConfig.idleTimeOut)
+        .withHost(ServerConfig.host)
+        .withPort(ServerConfig.port)
+        .withHttpApp(
+          Kleisli[IO, Request[IO], Response[IO]] { request =>
+            router(bitcoindInstance).run(request).getOrElse(Response.notFound)
+          }
+        )
+        .withLogger(Slf4jLogger.getLogger[IO])
+        .build
+        .allocated
+    } yield s"Server started on ${ServerConfig.host}:${ServerConfig.port}")
+    .handleErrorWith { e =>
+      e.printStackTrace()
+      IO(e.getMessage)
+    } >> IO.never
+  }
 
 }
