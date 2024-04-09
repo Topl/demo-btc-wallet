@@ -8,10 +8,10 @@ import org.bitcoins.core.currency.Bitcoins
 object Services {
   val MintingWallet = "minting"
   val DefaultWallet = "default"
-  val minFunds = 50 // Minimum funds we want our default wallet to have
-  val InitialFunds = 1000 // To default wallet
-  val InitialBlocksToGenerate = 10000 // 10,000 should initialize the minting wallet with 495,000 BTC (arbitrary large number to avoid running out of funds)
-  val InitialFundsToMint = (InitialBlocksToGenerate - 100) * 50 // To minting wallet, 495,000 BTC
+  val minFunds = 10 // Minimum funds we want our default wallet to have
+  val InitialFunds = 100 // To default wallet
+  val InitialBlocksToGenerate = 150 // 150 should initialize the minting wallet with 2,500 BTC (arbitrary large number to avoid running out of funds)
+  val InitialFundsToMint = (InitialBlocksToGenerate - 100) * 50 // To minting wallet, 2,500 BTC
 
   // Create or load wallets
   def initializeWallets(bitcoind: BitcoindExtended): IO[Unit] = for {
@@ -21,16 +21,16 @@ object Services {
     loadedWallets <- futureToIO(bitcoind.listWallets)
     unloadedWallets = allWallets.filterNot(loadedWallets.contains)
     res <- unloadedWallets.map(bitcoind.loadWallet).map(futureToIO).sequence
-  } yield println("All wallets are loaded: " + allWallets.mkString(", "))
+  } yield println("All wallets are loaded: " + (allWallets.toSet + MintingWallet + DefaultWallet).mkString(", "))
 
   // Only valid for RegTest
   private def fundMintingWallet(bitcoind: BitcoindExtended): IO[Unit] = for {
     currentBalance <- futureToIO(bitcoind.getBalance(MintingWallet))
     needsFunding = currentBalance.toBigDecimal <= BigDecimal(InitialFunds)
     newBalance <- if(needsFunding) for {
-      addr <- futureToIO(bitcoind.getNewAddress(MintingWallet))
+      addr <- futureToIO(bitcoind.getNewAddress(walletNameOpt = Some(MintingWallet)))
       // If Minting wallet does not have enough for the default wallet, load the minting wallet with a large amount of funds
-      _ <- futureToIO(bitcoind.generateToAddress(InitialFunds, addr))
+      _ <- futureToIO(bitcoind.generateToAddress(InitialBlocksToGenerate, addr))
       balRes <- futureToIO(bitcoind.getBalance(MintingWallet)).iterateUntil(_.toBigDecimal >= BigDecimal(InitialFundsToMint))
     } yield balRes
      else IO.pure(currentBalance)
@@ -40,9 +40,12 @@ object Services {
     currentBalance <- futureToIO(bitcoind.getBalance(DefaultWallet))
     needsFunding = currentBalance.toBigDecimal <= BigDecimal(minFunds)
     newBalance <- if(needsFunding) for {
-      addr <- futureToIO(bitcoind.getNewAddress(DefaultWallet))
+      addr <- futureToIO(bitcoind.getNewAddress(walletNameOpt = Some(DefaultWallet)))
       // If Default wallet does not have enough, transfer funds from minting wallet
-      _ <- futureToIO(bitcoind.sendToAddress(addr, Bitcoins(InitialFunds), walletNameOpt = Some(MintingWallet)))
+      _ <- bitcoind.sendToAddressWithFees(addr, Bitcoins(InitialFunds), MintingWallet)
+      // Manually mint a new block.. will be removed in the future
+      mintAddr <- futureToIO(bitcoind.getNewAddress(walletNameOpt = Some(MintingWallet)))
+      _ <- futureToIO(bitcoind.generateToAddress(1, mintAddr))
       balRes <- futureToIO(bitcoind.getBalance(DefaultWallet)).iterateUntil(_.toBigDecimal >= BigDecimal(InitialFunds))
     } yield balRes
      else IO.pure(currentBalance)

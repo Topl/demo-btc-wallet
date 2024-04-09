@@ -44,9 +44,9 @@ object TransferRequest {
       */
     def handler(r: Request[IO], bitcoind: BitcoindExtended): IO[Response[IO]] = for {
       req <- r.as[TransferRequest]
-      txId <- futureToIO(bitcoind.sendToAddress(req.toAddress, req.quantity, walletNameOpt = Some(req.fromWallet)))
+      txId <- bitcoind.sendToAddressWithFees(req.toAddress, req.quantity, req.fromWallet)
       // Manually mint a new block.. will be removed in the future
-      mintAddr <- futureToIO(bitcoind.getNewAddress(MintingWallet))
+      mintAddr <- futureToIO(bitcoind.getNewAddress(walletNameOpt = Some(MintingWallet)))
       _ <- futureToIO(bitcoind.generateToAddress(1, mintAddr))
       resp <- Ok(txId.hex)
     } yield resp
