@@ -53,4 +53,5 @@ object Services {
     _ <- fundMintingWallet(bitcoind)
     _ <- fundDefaultWallet(bitcoind)
   } yield println("Both Minting and Default wallets are funded")
+
 }

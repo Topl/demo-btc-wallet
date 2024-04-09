@@ -4,11 +4,11 @@ import org.bitcoins.rpc.client.common.BitcoindRpcClient
 import org.bitcoins.rpc.config.BitcoindInstance
 import play.api.libs.json.{JsArray, JsString, JsValue}
 import cats.effect.IO
+import org.bitcoins.crypto.DoubleSha256DigestBE
 
 import scala.concurrent.Future
 
 final class BitcoindExtended(impl: BitcoindInstance) extends BitcoindRpcClient(impl){
-
   import co.topl.btc.server.bitcoin.BitcoindExtended.futureToIO
 
   private def bitcoindCallRaw(

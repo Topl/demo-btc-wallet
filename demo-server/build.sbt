@@ -38,4 +38,4 @@ lazy val root = project
     .settings(noPublish)
 
 // Development mode: reloads the server when you change the code. Use "sbt dev" to run.
-addCommandAlias("dev", "importClient ; ~reStart")
+addCommandAlias("dev", "importClient ; ~reStart --btc-user=test --btc-password=test")

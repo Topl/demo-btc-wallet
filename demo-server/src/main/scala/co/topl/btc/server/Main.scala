@@ -18,9 +18,10 @@ import org.bitcoins.rpc.client.common.BitcoindRpcClient
 import org.bitcoins.rpc.config.BitcoindAuthCredentials.PasswordBased
 import scopt.OParser
 
-import co.topl.btc.server.api.ApiService
+import co.topl.btc.server.api.apiService
 import org.http4s.dsl.impl.Responses
 import co.topl.btc.server.bitcoin.onStartup
+import co.topl.btc.server.bitcoin.BitcoindExtended
 
 object Main extends IOApp {
   def webUI() = HttpRoutes.of[IO] { case request @ GET -> Root =>
@@ -28,8 +29,8 @@ object Main extends IOApp {
       .fromResource("/static/index.html", Some(request))
       .getOrElseF(InternalServerError())
   }
-  val router = 
-    Router.define("/api" -> ApiService, "/" -> webUI())(default = resourceServiceBuilder[IO]("/static").toRoutes)
+  def router(bitcoind: BitcoindExtended) = 
+    Router.define("/api" -> apiService(bitcoind), "/" -> webUI())(default = resourceServiceBuilder[IO]("/static").toRoutes)
 
   override def run(args: List[String]): IO[ExitCode] = Params.parseParams(args) match {
     case Some(config) =>
@@ -54,7 +55,7 @@ object Main extends IOApp {
         .withPort(ServerConfig.port)
         .withHttpApp(
           Kleisli[IO, Request[IO], Response[IO]] { request =>
-            router.run(request).getOrElse(Response.notFound)
+            router(bitcoindInstance).run(request).getOrElse(Response.notFound)
           }
         )
         .withLogger(Slf4jLogger.getLogger[IO])
