@@ -8,6 +8,7 @@ import org.bitcoins.rpc.config.BitcoindInstance
 import org.bitcoins.tor.Socks5ProxyParams
 import cats.effect.IO
 import co.topl.btc.server.bitcoin.BitcoindExtended
+import co.topl.btc.server.bitcoin.Services.{initializeWallets, fundWallets}
 
 import java.io.File
 import java.net.URI
@@ -62,5 +63,8 @@ package object bitcoin {
       )
     )
 
-    def onStartup(bitcoind: BitcoindExtended): IO[Unit] = ???
+    def onStartup(bitcoind: BitcoindExtended): IO[Unit] = for {
+      _ <- initializeWallets(bitcoind)
+      _ <- fundWallets(bitcoind)
+    } yield println("Bitcoind start-up complete.")
 }

@@ -9,7 +9,7 @@ import scala.concurrent.Future
 
 final class BitcoindExtended(impl: BitcoindInstance) extends BitcoindRpcClient(impl){
 
-  implicit def futureToIO[T](fut: Future[T]): IO[T] = IO.fromFuture(IO(fut))
+  import co.topl.btc.server.bitcoin.BitcoindExtended.futureToIO
 
   private def bitcoindCallRaw(
     command:         String,
@@ -31,5 +31,6 @@ final class BitcoindExtended(impl: BitcoindInstance) extends BitcoindRpcClient(i
 }
 
 object BitcoindExtended {
+  implicit def futureToIO[T](fut: Future[T]): IO[T] = IO.fromFuture(IO(fut))
   def apply(impl: BitcoindInstance): BitcoindExtended = new BitcoindExtended(impl)
 }
