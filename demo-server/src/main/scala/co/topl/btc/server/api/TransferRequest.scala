@@ -36,7 +36,6 @@ object TransferRequest {
           quantity <- c.downField("quantity").as[Int]
           transferType <- c.downField("transferType").as[String]
           pegInOpts <- transferType match {
-            //Look how you did it for the vault 
             case "peginDeposit" => c.downField("pegInOptions").downField("sessionId").as[String].map(sId => Some(PegInOpts(sId)))
             case _ => Right(None)
           }
