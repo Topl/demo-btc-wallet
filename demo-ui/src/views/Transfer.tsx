@@ -5,6 +5,7 @@ import Card from 'react-bootstrap/Card';
 import { FormEventHandler } from 'react';
 import submitTransfer from '../services/submitTransfer';
 import { toast } from 'react-toastify';
+import { useState } from 'react';
 
 const handleSubmit: FormEventHandler<HTMLFormElement> = event => {
   event.preventDefault();
@@ -14,6 +15,8 @@ const handleSubmit: FormEventHandler<HTMLFormElement> = event => {
     fromWallet: formData.get('fromWallet') as string,
     toAddress: formData.get('toAddress') as string,
     quantity: BigInt(formData.get('quantity') as string),
+    transferType: formData.get('transferType') as string,
+    pegInOptions: {sessionId: formData.get('sessionId') as string},
   }), {
     pending: "Submitting transfer request...",
     success: "Transfer request submitted successfully",
@@ -22,11 +25,33 @@ const handleSubmit: FormEventHandler<HTMLFormElement> = event => {
   .then(() => form.reset(), () => {})
 }
 
+const PegInOptions: FunctionComponent = () => {
+  return <div>
+    <Form.Group className="mb-3" controlId="sessionId">
+      <Form.Label>Session ID</Form.Label>
+      <Form.Control type="text" placeholder="1234" name='sessionId' required/>
+      <Form.Text className="text-muted">
+        The ID of the bridge session for which this peg-in deposit is being made.
+      </Form.Text>
+    </Form.Group>
+  </div>
+}
+
+const PegOutOptions: FunctionComponent = () => {
+  return <div>
+    <Form.Text className="text-muted">
+      Additional options for a Peg-out redemption transfer.
+    </Form.Text>
+  </div>
+}
+
 const Transfer: FunctionComponent =  () => {
+  const [transferType, setTransferType] = useState<string>("peginDeposit")
+
   return <div>
     <h1 className='py-4 text-center'>Transfer BTC</h1>
     <Card className='w-1/2 m-auto'>
-      <Card.Header className='!bg-slate-100'>Transfer BTC for Peg-in from default local wallet</Card.Header>
+      <Card.Header className='!bg-slate-100'>Transfer BTC from default local wallet</Card.Header>
       <Card.Body>
         <Form onSubmit={handleSubmit}>
           <Form.Group className="mb-3" controlId="walletName" hidden>
@@ -52,6 +77,37 @@ const Transfer: FunctionComponent =  () => {
               The amount of BTC to send to the recipient in Satoshis. 1 BTC = 100,000,000 Satoshis.
             </Form.Text>
           </Form.Group>
+          <Form.Check className="mb-3">
+            <Form.Label>Bridge Transfer Type</Form.Label>
+            <div>
+              <Form.Check
+                inline
+                required
+                className='cursor-none pointer-events-none'
+                type="radio"
+                label="Pegin Deposit"
+                id="peginDeposit"
+                name='transferType'
+                value="peginDeposit"
+                defaultChecked={transferType === "peginDeposit"}
+                onChange={(e) => setTransferType(e.target.id)}
+              />
+              <Form.Check
+                inline
+                hidden
+                type="radio"
+                // label="Pegout Redeem"
+                id="pegoutRedeem"
+                name='transferType'
+                value="pegoutRedeem"
+                defaultChecked={transferType === "pegoutRedeem"}
+                onChange={(e) => setTransferType(e.target.id)}
+              />
+            </div>
+          </Form.Check>
+          {
+            transferType === "peginDeposit" ? <PegInOptions/> : <PegOutOptions/>
+          }
           <Button variant="primary" type="submit">
             Send
           </Button>

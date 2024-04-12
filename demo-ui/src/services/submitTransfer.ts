@@ -3,7 +3,13 @@ import axios from "axios"
 interface TransferData {
     fromWallet: string
     toAddress: string
-    quantity: bigint
+    quantity: bigint,
+    transferType: String,
+    pegInOptions?: PegInOptions
+}
+
+interface PegInOptions {
+    sessionId: String
 }
 
 const submitTransfer = async (data: TransferData) => {
