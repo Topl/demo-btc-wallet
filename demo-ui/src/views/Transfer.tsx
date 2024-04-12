@@ -62,21 +62,6 @@ const Transfer: FunctionComponent =  () => {
               The wallet where the BTC will be sent from.
             </Form.Text>
           </Form.Group>
-          <Form.Group className="mb-3" controlId="recipientAddress">
-            <Form.Label>Recipient Address</Form.Label>
-            <Form.Control type="text" placeholder="bcrt1q58..." name='toAddress' required/>
-            <Form.Text className="text-muted">
-              The address to send BTC to.
-            </Form.Text>
-          </Form.Group>
-
-          <Form.Group className="mb-3" controlId="transferAmount">
-            <Form.Label>Quantity</Form.Label>
-            <Form.Control type="number" placeholder="1234" name='quantity' min={0} required/>
-            <Form.Text className="text-muted">
-              The amount of BTC to send to the recipient in Satoshis. 1 BTC = 100,000,000 Satoshis.
-            </Form.Text>
-          </Form.Group>
           <Form.Check className="mb-3">
             <Form.Label>Bridge Transfer Type</Form.Label>
             <div>
@@ -108,6 +93,21 @@ const Transfer: FunctionComponent =  () => {
           {
             transferType === "peginDeposit" ? <PegInOptions/> : <PegOutOptions/>
           }
+          <Form.Group className="mb-3" controlId="recipientAddress">
+            <Form.Label>Recipient Address</Form.Label>
+            <Form.Control type="text" placeholder="bcrt1q58..." name='toAddress' required/>
+            <Form.Text className="text-muted">
+              The address to send BTC to.
+            </Form.Text>
+          </Form.Group>
+
+          <Form.Group className="mb-3" controlId="transferAmount">
+            <Form.Label>Quantity</Form.Label>
+            <Form.Control type="number" placeholder="1234" name='quantity' min={0} required/>
+            <Form.Text className="text-muted">
+              The amount of BTC to send to the recipient in Satoshis. 1 BTC = 100,000,000 Satoshis.
+            </Form.Text>
+          </Form.Group>
           <Button variant="primary" type="submit">
             Send
           </Button>

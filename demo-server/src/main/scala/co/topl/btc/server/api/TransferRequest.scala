@@ -52,28 +52,16 @@ object TransferRequest {
       * @return An IO monad containing the response
       */
     def handler(r: Request[IO], bitcoind: BitcoindExtended, notifyPegInDeposit: ConfirmDepositRequest => IO[Unit]): IO[Response[IO]] = for {
-      req <- {
-        println("a")
-        val x = r.as[TransferRequest]
-        println("b")
-        x
-      }
+      req <- r.as[TransferRequest]
       txId <- bitcoind.sendToAddressWithFees(req.toAddress, req.quantity, req.fromWallet)
       // Manually mint a new block.. will be removed in the future
       mintAddr <- futureToIO(bitcoind.getNewAddress(walletNameOpt = Some(MintingWallet)))
       _ <- futureToIO(bitcoind.generateToAddress(1, mintAddr))
-      temp <- {
-        println("ahhh")
-        req.pegInOpts match {
+      _ <- req.pegInOpts match {
         case Some(opts) => notifyPegInDeposit(ConfirmDepositRequest(opts.sessionID, req.quantity.satoshis.toLong)).start.void
         case None => IO.unit
       }
-    }
-      resp <- {
-        println("oop")
-        println(temp)
-        Ok(txId.hex)
-      }
+      resp <- Ok(txId.hex)
     } yield resp
 
 }
