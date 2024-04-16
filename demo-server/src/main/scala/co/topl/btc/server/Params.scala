@@ -34,12 +34,12 @@ object Params {
           "The password to connect to a bitcoind instance. (required)"
         ),
       opt[String]("bridge-url")
-        .action((x, c) => c.copy(bitcoindUrl = x))
+        .action((x, c) => c.copy(bridgeUrl = x))
         .text(
           "The URL to connect to a bridge WS instance. (default: http://localhost)"
         ),
       opt[String]("bridge-port")
-        .action((x, c) => c.copy(bitcoindUrl = x))
+        .action((x, c) => c.copy(bridgePort = x))
         .text(
           "The port to connect to a bridge WS instance. (default: 4000)"
         ),
