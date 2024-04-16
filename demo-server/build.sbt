@@ -1,3 +1,4 @@
+import com.typesafe.sbt.packager.docker._
 import Dependencies._
 import scala.sys.process.Process
 
@@ -16,9 +17,60 @@ lazy val noPublish = Seq(
   publish / skip := true
 )
 
-val importClient = taskKey[Unit]("Import client (frontend)")
+lazy val commonDockerSettings = List(
+  Docker / version := dynverGitDescribeOutput.value
+    .mkVersion(versionFmt, fallbackVersion(dynverCurrentDate.value)),
+  dockerAliases := dockerAliases.value.flatMap { alias =>
+    if (sys.env.get("RELEASE_PUBLISH").getOrElse("false").toBoolean)
+      Seq(
+        alias.withRegistryHost(Some("ghcr.io/topl")),
+        alias.withRegistryHost(Some("docker.io/toplprotocol"))
+      )
+    else
+      Seq(
+        alias.withRegistryHost(Some("ghcr.io/topl"))
+      )
+  },
+  dockerBaseImage := "adoptopenjdk/openjdk11:jdk-11.0.16.1_1-ubuntu",
+  dockerChmodType := DockerChmodType.UserGroupWriteExecute,
+  dockerUpdateLatest := true
+)
 
-importClient := {
+lazy val dockerPublishSettingsBroker = List(
+  dockerExposedPorts ++= Seq(3002),
+  Docker / packageName := "demo-btc-wallet"
+) ++ commonDockerSettings
+
+def versionFmt(out: sbtdynver.GitDescribeOutput): String = {
+  val dirtySuffix = out.dirtySuffix.dropPlus.mkString("-", "")
+  if (out.isCleanAfterTag)
+    out.ref.dropPrefix + dirtySuffix // no commit info if clean after tag
+  else
+    out.ref.dropPrefix + out.commitSuffix.mkString("-", "-", "") + dirtySuffix
+}
+
+def fallbackVersion(d: java.util.Date): String =
+  s"HEAD-${sbtdynver.DynVer timestamp d}"
+
+val buildClient = taskKey[Unit]("Build client (frontend)")
+
+buildClient := {
+
+  // Install JS dependencies from package-lock.json
+  val npmCiExitCode = Process("npm ci", cwd = (root / baseDirectory).value / ".." / "demo-ui").!
+  if (npmCiExitCode > 0) {
+    throw new IllegalStateException(s"npm ci failed. See above for reason")
+  }
+
+  // Build the frontend with vite
+  val buildExitCode =
+    Process("npm run build", cwd = (root / baseDirectory).value / ".." / "demo-ui").!
+  if (buildExitCode > 0) {
+    throw new IllegalStateException(
+      s"Building frontend failed. See above for reason"
+    )
+  }
+
   // Copy vite output into server resources, where it can be accessed by the server,
   // even after the server is packaged in a fat jar.
   IO.copyDirectory(
@@ -34,8 +86,9 @@ lazy val root = project
     organization := "co.topl",
     name := "topl-demo-btc-wallet",
     libraryDependencies ++= http4s ++ cats ++ log4cats ++ slf4j ++ circe ++ btc ++ scopt
-    )
-    .settings(noPublish)
+  )
+  .enablePlugins(DockerPlugin, JavaAppPackaging)
+  .settings(noPublish)
 
 // Development mode: reloads the server when you change the code. Use "sbt dev" to run.
-addCommandAlias("dev", "importClient ; ~reStart --btc-user=test --btc-password=test")
+addCommandAlias("dev", "buildClient ; ~reStart --btc-user=test --btc-password=test")
