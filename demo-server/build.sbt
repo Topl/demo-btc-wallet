@@ -36,7 +36,7 @@ lazy val commonDockerSettings = List(
   dockerUpdateLatest := true
 )
 
-lazy val dockerPublishSettingsBroker = List(
+lazy val dockerPublishSettings = List(
   dockerExposedPorts ++= Seq(3002),
   Docker / packageName := "demo-btc-wallet"
 ) ++ commonDockerSettings
@@ -82,6 +82,7 @@ buildClient := {
 lazy val root = project
   .in(file("."))
   .settings(
+    dockerPublishSettings,
     scalaVersion := scalacVersion,
     organization := "co.topl",
     name := "topl-demo-btc-wallet",

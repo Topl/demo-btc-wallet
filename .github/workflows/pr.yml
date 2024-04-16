@@ -61,7 +61,8 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Push images to registries
-        run: sbt "buildClient; toplBtcBridge / Docker / publish"
+        working-directory: ./demo-server
+        run: sbt "buildClient; root / Docker / publish"
         env:
           DOCKER_PUBLISH: true
           RELEASE_PUBLISH: true
