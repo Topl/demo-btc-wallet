@@ -16,7 +16,7 @@ import org.http4s.EntityEncoder
 
 
 package object api {
-  case class BridgeWSClient(wsUrl: String, client: Resource[IO, Client[IO]])
+  case class BridgeWSClient(wsHost: String, wsPort: Int, client: Resource[IO, Client[IO]])
   case class ConfirmDepositRequest(sessionID: String, amount: Long)
 
   implicit val reqDecoder: EntityDecoder[IO, ConfirmDepositRequest] = jsonOf[IO, ConfirmDepositRequest]
@@ -26,7 +26,7 @@ package object api {
   def comfirmPegInDeposit(ws: BridgeWSClient): ConfirmDepositRequest => IO[Unit] = (depositReq: ConfirmDepositRequest) =>
     ws.client.use(client => 
       client.status(
-        Request[IO](method = Method.POST, uri = Uri(Some(Scheme.http), Some(Authority(port= Some(4000))), Root / "api"/ "confirm-deposit-btc")).withEntity(depositReq.asJson)
+        Request[IO](method = Method.POST, uri = Uri(Some(Scheme.http), Some(Authority(host = RegName(ws.wsHost), port= Some(ws.wsPort))), Root / "api"/ "confirm-deposit-btc")).withEntity(depositReq.asJson)
       ).flatMap(status => IO.println(s"confirm deposit status: $status")))
 
   // Define the API service routes

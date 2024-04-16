@@ -6,7 +6,7 @@ final case class Params(
   bitcoindUrl: String = "http://localhost", 
   bitcoindUser: String = "", 
   bitcoindPassword: String = "",
-  bridgeUrl: String = "http://localhost",
+  bridgeHost: String = "localhost",
   bridgePort: Int = 4000
 )
 
@@ -33,10 +33,10 @@ object Params {
         .text(
           "The password to connect to a bitcoind instance. (required)"
         ),
-      opt[String]("bridge-url")
-        .action((x, c) => c.copy(bridgeUrl = x))
+      opt[String]("bridge-host")
+        .action((x, c) => c.copy(bridgeHost = x))
         .text(
-          "The URL to connect to a bridge WS instance. (default: http://localhost)"
+          "The host to connect to a bridge WS instance. (default: localhost)"
         ),
       opt[Int]("bridge-port")
         .action((x, c) => c.copy(bridgePort = x))
