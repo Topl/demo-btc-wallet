@@ -38,7 +38,7 @@ object Params {
         .text(
           "The URL to connect to a bridge WS instance. (default: http://localhost)"
         ),
-      opt[String]("bridge-port")
+      opt[Int]("bridge-port")
         .action((x, c) => c.copy(bridgePort = x))
         .text(
           "The port to connect to a bridge WS instance. (default: 4000)"
