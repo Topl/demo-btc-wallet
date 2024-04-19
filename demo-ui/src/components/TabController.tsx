@@ -11,8 +11,8 @@ function TabController() {
   const [balances, setBalances] = useState<Balances>({trusted: 0, untrustedPending: 0, immature: 0})
   const [transactions, setTransactions] = useState<Array<TransactionResult>>([])
   const updateWallet = () => {
-    getBalances(walletName).then(setBalances)
-    listTransactions(walletName).then(setTransactions)
+    getBalances(walletName).then(setBalances).catch(console.error)
+    listTransactions(walletName).then(setTransactions).catch(console.error)
   }
     return <Tab.Container defaultActiveKey="transfer">
     <SideBar updateWallet={updateWallet}/>
