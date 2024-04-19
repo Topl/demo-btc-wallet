@@ -28,11 +28,8 @@ object ListTransactions {
     * @return An IO monad containing the response
     */
   def handler(wallet: String, bitcoind: BitcoindExtended): IO[Response[IO]] = for {
-    resp <- Ok(List(
-      ListTransactionsResponse("fake address 1", "send", 0, 0),
-      ListTransactionsResponse("fake address 2", "recv", 0, 0),
-      ListTransactionsResponse("fake address 3", "send", 0, 0)
-    ).asJson)
+    txs <- bitcoind.listWalletTransactions(wallet)
+    resp <- Ok(txs.map(tx => ListTransactionsResponse(tx.address.get.toString(), tx.category, tx.amount.toBigDecimal.longValue, tx.time.toLong)).asJson)
   } yield resp
 
 }

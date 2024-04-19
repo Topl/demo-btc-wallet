@@ -30,9 +30,9 @@ object FetchBalances {
   def handler(wallet: String, bitcoind: BitcoindExtended): IO[Response[IO]] = for {
     balances <- futureToIO(bitcoind.getBalances(wallet))
     resp <- Ok(FetchBalancesResponse(
-      0, 
-      balances.mine.untrusted_pending.satoshis.toLong, 
-      balances.mine.immature.satoshis.toLong
+      balances.mine.trusted.toBigDecimal.toLong, 
+      balances.mine.untrusted_pending.toBigDecimal.toLong, 
+      balances.mine.immature.toBigDecimal.toLong
     ).asJson)
   } yield resp
 
