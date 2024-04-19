@@ -9,7 +9,7 @@ const SingleTransaction: FunctionComponent<TransactionResult> =  ({address, cate
   return <>
     <div>{address}</div>
     <div className='justify-self-center'>{category}</div>
-    <div className='justify-self-end'>{amount.toString()} BTC</div>
+    <div className='justify-self-end'>{(amount/100000000).toString()} BTC</div>
     <div className='justify-self-end'>{new Date(time * 1000).toLocaleString("en-US", {month: "short", day: "numeric", hour: "numeric", minute: "numeric"})}</div>
   </>
 }

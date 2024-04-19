@@ -29,7 +29,7 @@ object ListTransactions {
     */
   def handler(wallet: String, bitcoind: BitcoindExtended): IO[Response[IO]] = for {
     txs <- bitcoind.listWalletTransactions(wallet)
-    resp <- Ok(txs.map(tx => ListTransactionsResponse(tx.address.get.toString(), tx.category, tx.amount.toBigDecimal.longValue, tx.time.toLong)).asJson)
+    resp <- Ok(txs.map(tx => ListTransactionsResponse(tx.address.get.toString(), tx.category, tx.amount.satoshis.toLong, tx.time.toLong)).asJson)
   } yield resp
 
 }

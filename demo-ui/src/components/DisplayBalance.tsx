@@ -2,23 +2,23 @@ import {FunctionComponent} from 'react';
 import {Balances} from '../services/fetchBalances';
 
 interface BalanceProps {
-  btc: number
+  sats: number
   label: string
 }
 
-const SingleBalance: FunctionComponent<BalanceProps> =  ({btc, label}) => {
+const SingleBalance: FunctionComponent<BalanceProps> =  ({sats, label}) => {
   return <div className='flex flex-col items-center'>
     <strong>{label}</strong>
-    <span>{btc.toLocaleString("en")} BTC</span>
-    <span className='text-xs font-thin'>&#x28;{(btc*100000000).toLocaleString("en")} sats&#x29;</span>
+    <span>{(sats/100000000).toLocaleString("en")} BTC</span>
+    <span className='text-xs font-thin'>&#x28;{sats.toLocaleString("en")} sats&#x29;</span>
   </div>
 }
 
 const DisplayBalance: FunctionComponent<Balances> =  ({immature, untrustedPending, trusted}) => {
   return <div className='flex justify-around'>
-    <SingleBalance label="Trusted" btc={trusted}/>
-    <SingleBalance label="Immature" btc={immature}/>
-    <SingleBalance label="Untrusted or Pending" btc={untrustedPending}/>
+    <SingleBalance label="Trusted" sats={trusted}/>
+    <SingleBalance label="Immature" sats={immature}/>
+    <SingleBalance label="Untrusted or Pending" sats={untrustedPending}/>
   </div>
 }
 
