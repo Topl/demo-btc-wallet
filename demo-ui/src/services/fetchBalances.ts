@@ -1,15 +1,15 @@
 import axios from "axios"
 
-interface Balances {
-    trusted: string
-    untrustedPending: string
+export interface Balances {
+    trusted: bigint
+    untrustedPending: bigint
     immature: bigint,
 }
 
 const getBalances: (wallet: String) => Promise<Balances> = async (wallet: String) => {
     return axios
-    .post("api/getBalances", {walletName: wallet})
-    .then(({data: {trusted, untrustedPending, immature}}) => Promise.resolve({trusted, untrustedPending, immature}))
+    .get(`api/getBalances/${wallet}`)
+    .then(({data}) => Promise.resolve(data))
     .catch(e => {
         console.error(e)
         return Promise.reject(e)

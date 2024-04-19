@@ -1,7 +1,18 @@
-import {FunctionComponent} from 'react';
+import {FunctionComponent, useEffect} from 'react';
 import Card from 'react-bootstrap/Card';
+import {TransactionResult} from '../services/listTransactions';
+import {Balances} from '../services/fetchBalances';
 
-const Wallet: FunctionComponent =  () => {
+interface WalletProps {
+  balances: Balances
+  transactions: Array<TransactionResult>
+}
+
+const Wallet: FunctionComponent<WalletProps> =  ({balances, transactions}) => {
+  useEffect(() => {
+    console.log(balances)
+    console.log(transactions)
+  })
   return <div className='flex flex-col space-y-4 mt-4'>
     <h1 className='text-center'>Wallet Details</h1>
     <div>

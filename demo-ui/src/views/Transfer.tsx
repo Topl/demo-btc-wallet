@@ -45,7 +45,11 @@ const PegOutOptions: FunctionComponent = () => {
   </div>
 }
 
-const Transfer: FunctionComponent =  () => {
+interface WalletProps {
+  walletName: string
+}
+
+const Transfer: FunctionComponent<WalletProps> =  ({walletName}) => {
   const [transferType, setTransferType] = useState<string>("peginDeposit")
 
   return <div>
@@ -57,7 +61,7 @@ const Transfer: FunctionComponent =  () => {
           <Form.Group className="mb-3" controlId="walletName" hidden>
             <Form.Label>Local Wallet</Form.Label>
             {/* Hardcoding wallet to default */}
-            <Form.Control type="text" value="default" name='fromWallet' readOnly/>
+            <Form.Control type="text" value={walletName} name='fromWallet' readOnly/>
             <Form.Text className="text-muted">
               The wallet where the BTC will be sent from.
             </Form.Text>
