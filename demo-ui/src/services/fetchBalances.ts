@@ -1,9 +1,9 @@
 import axios from "axios"
 
 export interface Balances {
-    trusted: bigint
-    untrustedPending: bigint
-    immature: bigint,
+    trusted: number
+    untrustedPending: number
+    immature: number,
 }
 
 const getBalances: (wallet: String) => Promise<Balances> = async (wallet: String) => {

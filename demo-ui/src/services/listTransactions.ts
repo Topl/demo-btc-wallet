@@ -3,8 +3,8 @@ import axios from "axios"
 export interface TransactionResult {
     address: string
     category: string
-    amount: bigint,
-    time: bigint
+    amount: number,
+    time: number
 }
 
 const listTransactions: (wallet: String) => Promise<Array<TransactionResult>> = async (wallet: String) => {
