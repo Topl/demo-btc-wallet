@@ -10,6 +10,7 @@ import org.bitcoins.core.currency.{Bitcoins, CurrencyUnit}
 import play.api.libs.json.Json
 import org.bitcoins.commons.serializers.JsonSerializers._
 import org.bitcoins.commons.serializers.JsonWriters._
+import org.bitcoins.commons.jsonmodels.bitcoind.ListTransactionsResult
 
 import scala.concurrent.Future
 import play.api.libs.json.JsNumber
@@ -17,6 +18,8 @@ import play.api.libs.json.JsBoolean
 
 final class BitcoindExtended(impl: BitcoindInstance) extends BitcoindRpcClient(impl){
   import co.topl.btc.server.bitcoin.BitcoindExtended.futureToIO
+
+  this.listTransactions()
 
   private def bitcoindCallRaw(
     command:         String,
@@ -56,6 +59,10 @@ final class BitcoindExtended(impl: BitcoindInstance) extends BitcoindRpcClient(i
     )
     .map(res =>(res \ "result").as[String])
     .map(DoubleSha256DigestBE.fromHex(_))
+
+  def listWalletTransactions(wallet: String): IO[Vector[ListTransactionsResult]] = 
+    bitcoindCallRaw("listtransactions", uriExtensionOpt = Some(walletExtension(wallet)))
+    .map(res =>(res \ "result").as[Vector[ListTransactionsResult]])
 }
 
 object BitcoindExtended {
