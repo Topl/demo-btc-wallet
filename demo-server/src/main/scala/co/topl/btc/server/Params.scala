@@ -5,7 +5,9 @@ import scopt.OParser
 final case class Params(
   bitcoindUrl: String = "http://localhost", 
   bitcoindUser: String = "", 
-  bitcoindPassword: String = ""
+  bitcoindPassword: String = "",
+  bridgeUrl: String = "http://localhost",
+  bridgePort: Int = 4000
 )
 
 object Params {
@@ -30,7 +32,17 @@ object Params {
         .action((x, c) => c.copy(bitcoindPassword = x))
         .text(
           "The password to connect to a bitcoind instance. (required)"
-        )
+        ),
+      opt[String]("bridge-url")
+        .action((x, c) => c.copy(bitcoindUrl = x))
+        .text(
+          "The URL to connect to a bridge WS instance. (default: http://localhost)"
+        ),
+      opt[String]("bridge-port")
+        .action((x, c) => c.copy(bitcoindUrl = x))
+        .text(
+          "The port to connect to a bridge WS instance. (default: 4000)"
+        ),
     )
   }
 

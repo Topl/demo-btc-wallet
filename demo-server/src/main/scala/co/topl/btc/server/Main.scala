@@ -1,6 +1,7 @@
 package co.topl.btc.server
 
 import org.http4s.ember.server.EmberServerBuilder
+import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.server.Router
 import org.http4s.server.middleware._
 import org.http4s.dsl.io._
@@ -18,7 +19,7 @@ import org.bitcoins.rpc.client.common.BitcoindRpcClient
 import org.bitcoins.rpc.config.BitcoindAuthCredentials.PasswordBased
 import scopt.OParser
 
-import co.topl.btc.server.api.apiService
+import co.topl.btc.server.api.{apiService, BridgeWSClient}
 import org.http4s.dsl.impl.Responses
 import co.topl.btc.server.bitcoin.onStartup
 import co.topl.btc.server.bitcoin.BitcoindExtended
@@ -29,8 +30,8 @@ object Main extends IOApp {
       .fromResource("/static/index.html", Some(request))
       .getOrElseF(InternalServerError())
   }
-  def router(bitcoind: BitcoindExtended) = 
-    Router.define("/api" -> apiService(bitcoind), "/" -> webUI())(default = resourceServiceBuilder[IO]("/static").toRoutes)
+  def router(bitcoind: BitcoindExtended, wsClient: BridgeWSClient) = 
+    Router.define("/api" -> apiService(bitcoind, wsClient), "/" -> webUI())(default = resourceServiceBuilder[IO]("/static").toRoutes)
 
   override def run(args: List[String]): IO[ExitCode] = Params.parseParams(args) match {
     case Some(config) =>
@@ -46,6 +47,10 @@ object Main extends IOApp {
       args.bitcoindUrl, 
       PasswordBased(args.bitcoindUser, args.bitcoindPassword)
     )
+    val bridgeWsClient = BridgeWSClient(
+      s"${args.bridgeUrl}:${args.bridgePort}",
+      EmberClientBuilder.default[IO].build
+    )
     (for {
       _ <- onStartup(bitcoindInstance)
       _ <- EmberServerBuilder
@@ -55,7 +60,7 @@ object Main extends IOApp {
         .withPort(ServerConfig.port)
         .withHttpApp(
           Kleisli[IO, Request[IO], Response[IO]] { request =>
-            router(bitcoindInstance).run(request).getOrElse(Response.notFound)
+            router(bitcoindInstance, bridgeWsClient).run(request).getOrElse(Response.notFound)
           }
         )
         .withLogger(Slf4jLogger.getLogger[IO])
