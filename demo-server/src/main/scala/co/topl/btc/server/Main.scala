@@ -10,6 +10,7 @@ import org.http4s._
 import org.http4s.server.staticcontent.resourceServiceBuilder
 import cats.effect.ExitCode
 import cats.effect.IO
+import scala.concurrent.duration._
 import cats.effect.IOApp
 import cats.data.Kleisli
 import org.typelevel.log4cats.slf4j.Slf4jLogger
@@ -23,6 +24,7 @@ import co.topl.btc.server.api.{apiService, BridgeWSClient}
 import org.http4s.dsl.impl.Responses
 import co.topl.btc.server.bitcoin.onStartup
 import co.topl.btc.server.bitcoin.BitcoindExtended
+import co.topl.btc.server.bitcoin.Services.mintBlock
 
 object Main extends IOApp {
   def webUI() = HttpRoutes.of[IO] { case request @ GET -> Root =>
@@ -71,7 +73,7 @@ object Main extends IOApp {
     .handleErrorWith { e =>
       e.printStackTrace()
       IO(e.getMessage)
-    } >> IO.never
+    } >> IO(mintBlock(bitcoindInstance)).andWait(args.mintTime.seconds).foreverM
   }
 
 }

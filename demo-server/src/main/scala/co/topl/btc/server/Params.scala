@@ -7,7 +7,8 @@ final case class Params(
   bitcoindUser: String = "", 
   bitcoindPassword: String = "",
   bridgeHost: String = "localhost",
-  bridgePort: Int = 4000
+  bridgePort: Int = 4000,
+  mintTime: Int = 30 // in seconds
 )
 
 object Params {
@@ -42,6 +43,11 @@ object Params {
         .action((x, c) => c.copy(bridgePort = x))
         .text(
           "The port to connect to a bridge WS instance. (default: 4000)"
+        ),
+      opt[Int]("mint-time")
+        .action((x, c) => c.copy(mintTime = x))
+        .text(
+          "Regtest mode only. The time (in seconds) between block minting. (default: 30 seconds)"
         ),
     )
   }

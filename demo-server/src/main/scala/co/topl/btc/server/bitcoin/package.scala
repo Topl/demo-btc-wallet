@@ -12,6 +12,7 @@ import co.topl.btc.server.bitcoin.Services.{initializeWallets, fundWallets}
 
 import java.io.File
 import java.net.URI
+import co.topl.btc.server.bitcoin.Services.mintBlock
 
 package object bitcoin {
     implicit val system: ActorSystem = ActorSystem("System")
