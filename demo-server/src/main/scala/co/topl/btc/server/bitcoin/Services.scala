@@ -56,6 +56,6 @@ object Services {
   def mintBlock(bitcoind: BitcoindExtended, numBlocks: Int = 1): IO[Unit] = for {
     addr <- futureToIO(bitcoind.getNewAddress(walletNameOpt = Some(MintingWallet)))
     _ <- futureToIO(bitcoind.generateToAddress(numBlocks, addr))
-  } yield IO.println("Minted new block")
+  } yield println("Minted new block")
 
 }

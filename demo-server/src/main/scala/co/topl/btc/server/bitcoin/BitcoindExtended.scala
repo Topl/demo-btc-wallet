@@ -19,8 +19,6 @@ import play.api.libs.json.JsBoolean
 final class BitcoindExtended(impl: BitcoindInstance) extends BitcoindRpcClient(impl){
   import co.topl.btc.server.bitcoin.BitcoindExtended.futureToIO
 
-  this.listTransactions()
-
   private def bitcoindCallRaw(
     command:         String,
     parameters:      List[JsValue] = List.empty,
