@@ -8,7 +8,7 @@ final case class Params(
   bitcoindPassword: String = "",
   bridgeHost: String = "localhost",
   bridgePort: Int = 4000,
-  mintTime: Int = 30 // in seconds
+  mintTime: Int = 90 // in seconds
 )
 
 object Params {
@@ -47,7 +47,11 @@ object Params {
       opt[Int]("mint-time")
         .action((x, c) => c.copy(mintTime = x))
         .text(
-          "Regtest mode only. The time (in seconds) between block minting. (default: 30 seconds)"
+          "Regtest mode only. The time (in seconds) between block minting. (default: 90 seconds)"
+        )
+        .validate(x =>
+          if (x >= 1 && x <= 3600) success // 1 hour
+          else failure("Mint interval must be between 1 second and 3600 seconds (1 hour)")
         ),
     )
   }
