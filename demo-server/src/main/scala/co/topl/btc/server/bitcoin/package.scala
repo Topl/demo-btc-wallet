@@ -13,6 +13,7 @@ import co.topl.btc.server.bitcoin.Services.{initializeWallets, fundWallets}
 import java.io.File
 import java.net.URI
 import co.topl.btc.server.bitcoin.Services.mintBlock
+import org.typelevel.log4cats.slf4j.Slf4jLogger
 
 package object bitcoin {
     implicit val system: ActorSystem = ActorSystem("System")
@@ -67,5 +68,6 @@ package object bitcoin {
     def onStartup(bitcoind: BitcoindExtended): IO[Unit] = for {
       _ <- initializeWallets(bitcoind)
       _ <- fundWallets(bitcoind)
-    } yield println("Bitcoind start-up complete.")
+      _ <- Slf4jLogger.getLogger[IO].info("Bitcoind start-up complete.")
+    } yield ()
 }

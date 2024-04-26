@@ -4,6 +4,7 @@ import cats.effect.IO
 import cats.implicits._
 import co.topl.btc.server.bitcoin.BitcoindExtended.futureToIO
 import org.bitcoins.core.currency.Bitcoins
+import org.typelevel.log4cats.slf4j.Slf4jLogger
 
 object Services {
   val MintingWallet = "minting"
@@ -21,7 +22,8 @@ object Services {
     loadedWallets <- futureToIO(bitcoind.listWallets)
     unloadedWallets = allWallets.filterNot(loadedWallets.contains)
     res <- unloadedWallets.map(bitcoind.loadWallet).map(futureToIO).sequence
-  } yield println("All wallets are loaded: " + (allWallets.toSet + MintingWallet + DefaultWallet).mkString(", "))
+    _ <- Slf4jLogger.getLogger[IO].info("All wallets are loaded: " + (allWallets.toSet + MintingWallet + DefaultWallet).mkString(", "))
+  } yield ()
 
   // Only valid for RegTest
   private def fundMintingWallet(bitcoind: BitcoindExtended): IO[Unit] = for {
@@ -32,7 +34,8 @@ object Services {
       balRes <- futureToIO(bitcoind.getBalance(MintingWallet)).iterateUntil(_.toBigDecimal >= BigDecimal(InitialFundsToMint))
     } yield balRes
      else IO.pure(currentBalance)
-  } yield println("Minting wallet funded: " + newBalance)
+  _ <- Slf4jLogger.getLogger[IO].info("Minting wallet funded: " + newBalance)
+  } yield ()
 
   private def fundDefaultWallet(bitcoind: BitcoindExtended): IO[Unit] = for {
     currentBalance <- futureToIO(bitcoind.getBalance(DefaultWallet))
@@ -45,17 +48,20 @@ object Services {
       balRes <- futureToIO(bitcoind.getBalance(DefaultWallet)).iterateUntil(_.toBigDecimal >= BigDecimal(InitialFunds))
     } yield balRes
      else IO.pure(currentBalance)
-  } yield println("Default wallet funded: " + newBalance)
+    _ <- Slf4jLogger.getLogger[IO].info("Default wallet funded: " + newBalance)
+  } yield ()
 
   // Fund default wallet. Preconditions: Both wallets are loaded
   def fundWallets(bitcoind: BitcoindExtended): IO[Unit] = for {
     _ <- fundMintingWallet(bitcoind)
     _ <- fundDefaultWallet(bitcoind)
-  } yield println("Both Minting and Default wallets are funded")
+    _ <- Slf4jLogger.getLogger[IO].info("Both Minting and Default wallets are funded")
+  } yield ()
 
   def mintBlock(bitcoind: BitcoindExtended, numBlocks: Int = 1): IO[Unit] = for {
     addr <- futureToIO(bitcoind.getNewAddress(walletNameOpt = Some(MintingWallet)))
     _ <- futureToIO(bitcoind.generateToAddress(numBlocks, addr))
-  } yield println("Minted new block")
+    _ <- Slf4jLogger.getLogger[IO].info("Minted new block")
+  } yield ()
 
 }

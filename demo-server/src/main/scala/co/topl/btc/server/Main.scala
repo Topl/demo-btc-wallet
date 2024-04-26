@@ -48,6 +48,7 @@ object Main extends IOApp {
   }
 
   def runWithArgs(args: Params): IO[ExitCode] = {
+    val logger = Slf4jLogger.getLogger[IO]
     val bitcoindInstance = remoteConnection(
       RegTest, 
       args.bitcoindUrl, 
@@ -58,9 +59,8 @@ object Main extends IOApp {
       args.bridgePort,
       EmberClientBuilder.default[IO].build
     )
-    (for {
-      _ <- onStartup(bitcoindInstance)
-      _ <- EmberServerBuilder
+    onStartup(bitcoindInstance) >> (
+      EmberServerBuilder
         .default[IO]
         .withIdleTimeout(ServerConfig.idleTimeOut)
         .withHost(ServerConfig.host)
@@ -70,10 +70,11 @@ object Main extends IOApp {
             router(bitcoindInstance, bridgeWsClient).run(request).getOrElse(Response.notFound)
           }
         )
-        .withLogger(Slf4jLogger.getLogger[IO])
+        .withLogger(logger)
         .build
-        .allocated
-    } yield println(s"Server started on ${ServerConfig.host}:${ServerConfig.port}"))  &> mintForever(bitcoindInstance, args.mintTime)
+        .allocated >> logger.info(s"Server started on ${ServerConfig.host}:${ServerConfig.port}")
+    ) >> 
+    mintForever(bitcoindInstance, args.mintTime)
     .as(ExitCode.Success)
     .handleErrorWith { e =>
       e.printStackTrace()
