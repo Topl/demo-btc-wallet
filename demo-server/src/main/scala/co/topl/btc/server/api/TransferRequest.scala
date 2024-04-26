@@ -53,7 +53,6 @@ object TransferRequest {
     def handler(r: Request[IO], bitcoind: BitcoindExtended, notifyPegInDeposit: ConfirmDepositRequest => IO[Unit]): IO[Response[IO]] = for {
       req <- r.as[TransferRequest]
       txId <- bitcoind.sendToAddressWithFees(req.toAddress, req.quantity, req.fromWallet)
-      _ <- mintBlock(bitcoind)
       _ <- req.pegInOpts match {
         case Some(opts) => notifyPegInDeposit(ConfirmDepositRequest(opts.sessionID, req.quantity.satoshis.toLong)).start.void
         case None => IO.unit
