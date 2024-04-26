@@ -10,6 +10,8 @@ import org.http4s._
 import org.http4s.server.staticcontent.resourceServiceBuilder
 import cats.effect.ExitCode
 import cats.effect.IO
+import cats.effect.std.Console
+import scala.concurrent.duration._
 import cats.effect.IOApp
 import cats.data.Kleisli
 import org.typelevel.log4cats.slf4j.Slf4jLogger
@@ -23,6 +25,7 @@ import co.topl.btc.server.api.{apiService, BridgeWSClient}
 import org.http4s.dsl.impl.Responses
 import co.topl.btc.server.bitcoin.onStartup
 import co.topl.btc.server.bitcoin.BitcoindExtended
+import co.topl.btc.server.bitcoin.Services.mintBlock
 
 object Main extends IOApp {
   def webUI() = HttpRoutes.of[IO] { case request @ GET -> Root =>
@@ -33,6 +36,9 @@ object Main extends IOApp {
   def router(bitcoind: BitcoindExtended, wsClient: BridgeWSClient) = 
     Router.define("/api" -> apiService(bitcoind, wsClient), "/" -> webUI())(default = resourceServiceBuilder[IO]("/static").toRoutes)
 
+  def mintForever(bitcoind: BitcoindExtended, delay: Int): IO[Unit] = 
+    mintBlock(bitcoind).andWait(delay.seconds).foreverM
+
   override def run(args: List[String]): IO[ExitCode] = Params.parseParams(args) match {
     case Some(config) =>
       runWithArgs(config)
@@ -42,6 +48,7 @@ object Main extends IOApp {
   }
 
   def runWithArgs(args: Params): IO[ExitCode] = {
+    val logger = Slf4jLogger.getLogger[IO]
     val bitcoindInstance = remoteConnection(
       RegTest, 
       args.bitcoindUrl, 
@@ -52,9 +59,8 @@ object Main extends IOApp {
       args.bridgePort,
       EmberClientBuilder.default[IO].build
     )
-    (for {
-      _ <- onStartup(bitcoindInstance)
-      _ <- EmberServerBuilder
+    onStartup(bitcoindInstance) >> (
+      EmberServerBuilder
         .default[IO]
         .withIdleTimeout(ServerConfig.idleTimeOut)
         .withHost(ServerConfig.host)
@@ -64,13 +70,15 @@ object Main extends IOApp {
             router(bitcoindInstance, bridgeWsClient).run(request).getOrElse(Response.notFound)
           }
         )
-        .withLogger(Slf4jLogger.getLogger[IO])
+        .withLogger(logger)
         .build
-        .allocated
-    } yield s"Server started on ${ServerConfig.host}:${ServerConfig.port}")
+        .allocated >> logger.info(s"Server started on ${ServerConfig.host}:${ServerConfig.port}")
+    ) >> 
+    mintForever(bitcoindInstance, args.mintTime)
+    .as(ExitCode.Success)
     .handleErrorWith { e =>
       e.printStackTrace()
-      IO(e.getMessage)
+      Console[IO].errorln(s"Error caught: ${e.getMessage}").as(ExitCode.Error)
     } >> IO.never
   }
 

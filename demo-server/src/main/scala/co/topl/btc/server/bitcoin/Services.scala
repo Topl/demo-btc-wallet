@@ -4,6 +4,7 @@ import cats.effect.IO
 import cats.implicits._
 import co.topl.btc.server.bitcoin.BitcoindExtended.futureToIO
 import org.bitcoins.core.currency.Bitcoins
+import org.typelevel.log4cats.slf4j.Slf4jLogger
 
 object Services {
   val MintingWallet = "minting"
@@ -21,20 +22,20 @@ object Services {
     loadedWallets <- futureToIO(bitcoind.listWallets)
     unloadedWallets = allWallets.filterNot(loadedWallets.contains)
     res <- unloadedWallets.map(bitcoind.loadWallet).map(futureToIO).sequence
-  } yield println("All wallets are loaded: " + (allWallets.toSet + MintingWallet + DefaultWallet).mkString(", "))
+    _ <- Slf4jLogger.getLogger[IO].info("All wallets are loaded: " + (allWallets.toSet + MintingWallet + DefaultWallet).mkString(", "))
+  } yield ()
 
   // Only valid for RegTest
   private def fundMintingWallet(bitcoind: BitcoindExtended): IO[Unit] = for {
     currentBalance <- futureToIO(bitcoind.getBalance(MintingWallet))
     needsFunding = currentBalance.toBigDecimal <= BigDecimal(InitialFunds)
     newBalance <- if(needsFunding) for {
-      addr <- futureToIO(bitcoind.getNewAddress(walletNameOpt = Some(MintingWallet)))
-      // If Minting wallet does not have enough for the default wallet, load the minting wallet with a large amount of funds
-      _ <- futureToIO(bitcoind.generateToAddress(InitialBlocksToGenerate, addr))
+      _ <- mintBlock(bitcoind, InitialBlocksToGenerate)
       balRes <- futureToIO(bitcoind.getBalance(MintingWallet)).iterateUntil(_.toBigDecimal >= BigDecimal(InitialFundsToMint))
     } yield balRes
      else IO.pure(currentBalance)
-  } yield println("Minting wallet funded: " + newBalance)
+  _ <- Slf4jLogger.getLogger[IO].info("Minting wallet funded: " + newBalance)
+  } yield ()
 
   private def fundDefaultWallet(bitcoind: BitcoindExtended): IO[Unit] = for {
     currentBalance <- futureToIO(bitcoind.getBalance(DefaultWallet))
@@ -43,18 +44,24 @@ object Services {
       addr <- futureToIO(bitcoind.getNewAddress(walletNameOpt = Some(DefaultWallet)))
       // If Default wallet does not have enough, transfer funds from minting wallet
       _ <- bitcoind.sendToAddressWithFees(addr, Bitcoins(InitialFunds), MintingWallet)
-      // Manually mint a new block.. will be removed in the future
-      mintAddr <- futureToIO(bitcoind.getNewAddress(walletNameOpt = Some(MintingWallet)))
-      _ <- futureToIO(bitcoind.generateToAddress(1, mintAddr))
+      _ <- mintBlock(bitcoind)
       balRes <- futureToIO(bitcoind.getBalance(DefaultWallet)).iterateUntil(_.toBigDecimal >= BigDecimal(InitialFunds))
     } yield balRes
      else IO.pure(currentBalance)
-  } yield println("Default wallet funded: " + newBalance)
+    _ <- Slf4jLogger.getLogger[IO].info("Default wallet funded: " + newBalance)
+  } yield ()
 
   // Fund default wallet. Preconditions: Both wallets are loaded
   def fundWallets(bitcoind: BitcoindExtended): IO[Unit] = for {
     _ <- fundMintingWallet(bitcoind)
     _ <- fundDefaultWallet(bitcoind)
-  } yield println("Both Minting and Default wallets are funded")
+    _ <- Slf4jLogger.getLogger[IO].info("Both Minting and Default wallets are funded")
+  } yield ()
+
+  def mintBlock(bitcoind: BitcoindExtended, numBlocks: Int = 1): IO[Unit] = for {
+    addr <- futureToIO(bitcoind.getNewAddress(walletNameOpt = Some(MintingWallet)))
+    _ <- futureToIO(bitcoind.generateToAddress(numBlocks, addr))
+    _ <- Slf4jLogger.getLogger[IO].info("Minted new block")
+  } yield ()
 
 }

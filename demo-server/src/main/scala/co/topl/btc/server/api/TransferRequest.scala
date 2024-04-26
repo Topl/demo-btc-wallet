@@ -11,7 +11,7 @@ import io.circe.{ Decoder, Encoder, HCursor, Json }
 import org.bitcoins.core.protocol.BitcoinAddress
 import org.bitcoins.core.currency.Satoshis
 import co.topl.btc.server.bitcoin.BitcoindExtended
-import co.topl.btc.server.bitcoin.Services.MintingWallet
+import co.topl.btc.server.bitcoin.Services.mintBlock
 import co.topl.btc.server.bitcoin.BitcoindExtended.futureToIO
 import TransferRequest.PegInOpts
 import io.circe.Json
@@ -53,9 +53,6 @@ object TransferRequest {
     def handler(r: Request[IO], bitcoind: BitcoindExtended, notifyPegInDeposit: ConfirmDepositRequest => IO[Unit]): IO[Response[IO]] = for {
       req <- r.as[TransferRequest]
       txId <- bitcoind.sendToAddressWithFees(req.toAddress, req.quantity, req.fromWallet)
-      // Manually mint a new block.. will be removed in the future
-      mintAddr <- futureToIO(bitcoind.getNewAddress(walletNameOpt = Some(MintingWallet)))
-      _ <- futureToIO(bitcoind.generateToAddress(1, mintAddr))
       _ <- req.pegInOpts match {
         case Some(opts) => notifyPegInDeposit(ConfirmDepositRequest(opts.sessionID, req.quantity.satoshis.toLong)).start.void
         case None => IO.unit
