@@ -16,7 +16,7 @@ import org.http4s.EntityEncoder
 
 
 package object api {
-  case class BridgeWSClient(wsHost: String, wsPort: Int, client: Resource[IO, Client[IO]])
+  case class BridgeWSClient(client: Resource[IO, Client[IO]])
   case class ConfirmDepositRequest(sessionID: String, amount: Long)
 
   implicit val reqDecoder: EntityDecoder[IO, ConfirmDepositRequest] = jsonOf[IO, ConfirmDepositRequest]

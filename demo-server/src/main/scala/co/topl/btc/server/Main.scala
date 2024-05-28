@@ -55,8 +55,6 @@ object Main extends IOApp {
       PasswordBased(args.bitcoindUser, args.bitcoindPassword)
     )
     val bridgeWsClient = BridgeWSClient(
-      args.bridgeHost,
-      args.bridgePort,
       EmberClientBuilder.default[IO].build
     )
     onStartup(bitcoindInstance) >> (
