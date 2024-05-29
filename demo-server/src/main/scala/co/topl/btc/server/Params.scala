@@ -6,8 +6,6 @@ final case class Params(
   bitcoindUrl: String = "http://localhost", 
   bitcoindUser: String = "", 
   bitcoindPassword: String = "",
-  bridgeHost: String = "localhost",
-  bridgePort: Int = 4000,
   mintTime: Int = 90 // in seconds
 )
 
@@ -33,16 +31,6 @@ object Params {
         .action((x, c) => c.copy(bitcoindPassword = x))
         .text(
           "The password to connect to a bitcoind instance. (required)"
-        ),
-      opt[String]("bridge-host")
-        .action((x, c) => c.copy(bridgeHost = x))
-        .text(
-          "The host to connect to a bridge WS instance. (default: localhost)"
-        ),
-      opt[Int]("bridge-port")
-        .action((x, c) => c.copy(bridgePort = x))
-        .text(
-          "The port to connect to a bridge WS instance. (default: 4000)"
         ),
       opt[Int]("mint-time")
         .action((x, c) => c.copy(mintTime = x))

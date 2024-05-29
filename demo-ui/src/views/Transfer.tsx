@@ -14,27 +14,13 @@ const handleSubmit: FormEventHandler<HTMLFormElement> = event => {
   toast.promise(submitTransfer({
     fromWallet: formData.get('fromWallet') as string,
     toAddress: formData.get('toAddress') as string,
-    quantity: BigInt(formData.get('quantity') as string),
-    transferType: formData.get('transferType') as string,
-    pegInOptions: {sessionId: formData.get('sessionId') as string},
+    quantity: BigInt(formData.get('quantity') as string)
   }), {
     pending: "Submitting transfer request...",
     success: "Transfer request submitted successfully",
     error: "Failed to submit transfer request"
   })
   .then(() => form.reset(), () => {})
-}
-
-const PegInOptions: FunctionComponent = () => {
-  return <div>
-    <Form.Group className="mb-3" controlId="sessionId">
-      <Form.Label>Session ID</Form.Label>
-      <Form.Control type="text" placeholder="1234" name='sessionId' required/>
-      <Form.Text className="text-muted">
-        The ID of the bridge session for which this peg-in deposit is being made.
-      </Form.Text>
-    </Form.Group>
-  </div>
 }
 
 const PegOutOptions: FunctionComponent = () => {
@@ -95,7 +81,7 @@ const Transfer: FunctionComponent<WalletProps> =  ({walletName}) => {
             </div>
           </Form.Check>
           {
-            transferType === "peginDeposit" ? <PegInOptions/> : <PegOutOptions/>
+            transferType === "peginDeposit" ? <></> : <PegOutOptions/>
           }
           <Form.Group className="mb-3" controlId="recipientAddress">
             <Form.Label>Recipient Address</Form.Label>
