@@ -13,7 +13,6 @@ import org.bitcoins.core.currency.Satoshis
 import co.topl.btc.server.bitcoin.BitcoindExtended
 import co.topl.btc.server.bitcoin.BitcoindExtended.futureToIO
 import io.circe.Json
-import co.topl.btc.server.bitcoin.wallet
 
 
 object FetchBalances {
@@ -28,8 +27,8 @@ object FetchBalances {
     * @param bitcoind The bitcoind instance to use
     * @return An IO monad containing the response
     */
-  def handler(bitcoind: BitcoindExtended): IO[Response[IO]] = for {
-    balances <- futureToIO(bitcoind.getBalances(walletName = wallet))
+  def handler(wallet: String, bitcoind: BitcoindExtended): IO[Response[IO]] = for {
+    balances <- futureToIO(bitcoind.getBalances(wallet))
     resp <- Ok(FetchBalancesResponse(
       balances.mine.trusted.satoshis.toLong, 
       balances.mine.untrusted_pending.satoshis.toLong, 

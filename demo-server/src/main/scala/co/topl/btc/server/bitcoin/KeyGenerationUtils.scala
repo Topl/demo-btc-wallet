@@ -1,112 +1,42 @@
 package co.topl.btc.server.bitcoin
 
-import cats.effect.kernel.Sync
-import org.bitcoins.core.crypto.MnemonicCode
+import cats.effect.IO
 import org.bitcoins.core.hd.BIP32Path
-import org.bitcoins.core.hd.HDAccount
-import org.bitcoins.core.hd.HDPath
-import org.bitcoins.core.hd.HDPurposes
-import org.bitcoins.core.config.NetworkParameters
-import org.bitcoins.core.wallet.keymanagement.KeyManagerParams
-import org.bitcoins.crypto.AesPassword
-import org.bitcoins.keymanager.bip39.BIP39KeyManager
 import scodec.bits.ByteVector
 import org.bitcoins.crypto.ECDigitalSignature
-import org.bitcoins.crypto.HashType
 import org.bitcoins.crypto.ECPublicKey
+import org.bitcoins.core.crypto.ExtPrivateKey
 
-object KeyGenerationUtils {
+import org.bitcoins.core.number.UInt32
 
-  def signWithKeyManager[F[_]: Sync](
-      km: BIP39KeyManager,
+object KeyGenerationUtils {  
+    /**
+     * Derive a key from the specified wallet that can be used as our "main" key. 
+     * We will further derive this key using some index to use in transactions.
+    */
+  def loadMainKey(
+     bitcoind: BitcoindExtended
+  ): IO[ExtPrivateKey] = for {
+    walletPrivateDescriptors <- bitcoind.listDescriptors(wallet, isPrivate = true)
+  } yield {
+    val mRaw = (walletPrivateDescriptors.head \ "desc").result.get.toString()
+    val m = ExtPrivateKey.fromString(mRaw.substring(mRaw.indexOf("(") + 1, mRaw.indexOf("/")))
+    // m / purpose' / coin_type' / account' / change / index ... BIP-044
+    // our existing indices do not follow this scheme, so we need to choose a purpose that is not already in use
+    // Per Bip-43 (and other Bips), purposes known to be in use are (non-exhaustive): 0, 44, 49, 86, 84, (1852 for cardano ed25519)
+    // For now, we will choose 7091 (which is our coin_type, but not recognized since our purpose is not 44)
+    val mainKeyPath = BIP32Path.fromString("m/7091'/1'/0'/0")
+    m.deriveChildPrivKey(mainKeyPath)
+  }
+
+  def signWithMainKey(
+      mainKey: ExtPrivateKey,
       txBytes: ByteVector,
       currentIdx: Int
-  ): F[String] = {
-    import cats.implicits._
-    for {
-      signed <- Sync[F].delay(
-        km.toSign(HDPath.fromString("m/84'/1'/0'/0/" + currentIdx))
-          .sign(txBytes)
-      )
-      canonicalSignature <- Sync[F].delay(
-        ECDigitalSignature(
-          signed.bytes ++ ByteVector.fromByte(HashType.sigHashAll.byte)
-        )
-      )
-    } yield canonicalSignature.hex
-  }
-  def loadKeyManager[F[_]: Sync](
-      btcNetwork: NetworkParameters,
-      seedFile: String,
-      password: String
-  ): F[BIP39KeyManager] = {
-    import cats.implicits._
-    for {
-      seedPath <- Sync[F].delay(
-        new java.io.File(seedFile).getAbsoluteFile.toPath
-      )
-      purpose = HDPurposes.SegWit
-      kmParams = KeyManagerParams(seedPath, purpose, btcNetwork)
-      aesPasswordOpt = Some(AesPassword.fromString(password))
-      km <- Sync[F].fromEither(
-        BIP39KeyManager
-          .fromParams(
-            kmParams,
-            aesPasswordOpt,
-            None
-          )
-          .left
-          .map(_ => new IllegalArgumentException("Invalid params"))
-      )
-    } yield km
-  }
+  ): ECDigitalSignature = mainKey.deriveChildPrivKey(UInt32(currentIdx)).sign(txBytes)
 
-  def createKeyManager[F[_]: Sync](
-      btcNetwork: NetworkParameters,
-      seedFile: String,
-      password: String
-  ) = {
-    import cats.implicits._
-    for {
-      seedPath <- Sync[F].delay(
-        new java.io.File(seedFile).getAbsoluteFile.toPath
-      )
-      purpose = HDPurposes.SegWit
-      kmParams = KeyManagerParams(seedPath, purpose, btcNetwork)
-      aesPasswordOpt = Some(AesPassword.fromString(password))
-      entropy = MnemonicCode.getEntropy256Bits
-      mnemonic = MnemonicCode.fromEntropy(entropy)
-      km <- Sync[F].fromEither(
-        BIP39KeyManager.initializeWithMnemonic(
-          aesPasswordOpt,
-          mnemonic,
-          None,
-          kmParams
-        )
-      )
-    } yield km
-  }
-
-  def generateKey[F[_]: Sync](
-      km: BIP39KeyManager,
+  def generatePublicKey(
+      mainKey: ExtPrivateKey,
       currentIdx: Int
-  ): F[ECPublicKey] = {
-    import cats.implicits._
-    for {
-      hdAccount <- Sync[F].fromOption(
-        HDAccount.fromPath(
-          BIP32Path.fromString("m/84'/1'/0'")
-        ) // this is the standard account path for segwit
-        ,
-        new IllegalArgumentException("Invalid account path")
-      )
-      pKey <- Sync[F].delay(
-        km.deriveXPub(hdAccount)
-          .get
-          .deriveChildPubKey(BIP32Path.fromString("m/0/" + currentIdx.toString))
-          .get
-          .key
-      )
-    } yield (pKey)
-  }
+  ): ECPublicKey = mainKey.deriveChildPrivKey(UInt32(currentIdx)).publicKey
 }

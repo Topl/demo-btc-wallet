@@ -17,15 +17,10 @@ object Services {
   val InitialFundsToMint = (InitialBlocksToGenerate - 100) * 50 // To minting wallet, 2,500 BTC
 
   // Create or load wallets
-  def initializeWallets(bitcoind: BitcoindExtended, seedFile: String, password: String): IO[Unit] = for {
+  def initializeWallets(bitcoind: BitcoindExtended): IO[Unit] = for {
     allWallets <- bitcoind.listWalletDirs()
     _ <- if(allWallets.contains(MintingWallet)) IO.unit else futureToIO(bitcoind.createWallet(MintingWallet))
-    _ <- if(allWallets.contains(DefaultWallet)) IO.unit else 
-      futureToIO(bitcoind.createWallet(DefaultWallet, blank = true)) >> {
-        val seedPath = new java.io.File(seedFile).getAbsoluteFile.toPath
-        val decryptedSeed = WalletStorage.decryptSeedFromDisk(seedPath, Some(AesPassword.fromString(password)))
-        bitcoind.setHdSeed(???)
-      }
+    _ <- if(allWallets.contains(DefaultWallet)) IO.unit else futureToIO(bitcoind.createWallet(DefaultWallet))
     loadedWallets <- futureToIO(bitcoind.listWallets)
     unloadedWallets = allWallets.filterNot(loadedWallets.contains)
     res <- unloadedWallets.map(bitcoind.loadWallet).map(futureToIO).sequence

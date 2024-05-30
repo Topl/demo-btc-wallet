@@ -27,8 +27,8 @@ object ListTransactions {
     * @param bitcoind The bitcoind instance to use
     * @return An IO monad containing the response
     */
-  def handler(bitcoind: BitcoindExtended): IO[Response[IO]] = for {
-    txs <- bitcoind.listWalletTransactions()
+  def handler(wallet: String, bitcoind: BitcoindExtended): IO[Response[IO]] = for {
+    txs <- bitcoind.listWalletTransactions(wallet)
     resp <- Ok(txs.map(tx => ListTransactionsResponse(tx.address.get.toString(), tx.category, tx.amount.satoshis.toLong, tx.time.toLong)).asJson)
   } yield resp
 

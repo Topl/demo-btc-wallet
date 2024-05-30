@@ -3,8 +3,6 @@ package co.topl.btc.server
 import scopt.OParser
 
 final case class Params(
-  seedFile: String = "",
-  walletPassword: String = "",
   bitcoindUrl: String = "http://localhost", 
   bitcoindUser: String = "", 
   bitcoindPassword: String = "",
@@ -17,16 +15,6 @@ object Params {
     import builder._
     OParser.sequence(
       programName("demo-btc-wallet"),
-      opt[String]("seed-file")
-        .action((x, c) => c.copy(seedFile = x))
-        .text(
-          "The seed file of the demo wallet. (required)"
-        ),
-      opt[String]("wallet-password")
-        .action((x, c) => c.copy(walletPassword = x))
-        .text(
-          "The password encrypting the seed of the demo wallet. (required)"
-        ),
       opt[String]("btc-url")
         .action((x, c) => c.copy(bitcoindUrl = x))
         .text(
