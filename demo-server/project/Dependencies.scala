@@ -40,7 +40,8 @@ object Dependencies {
 
   lazy val btc: Seq[ModuleID] = Seq(
     "org.bitcoin-s" %% "bitcoin-s-core" % btcVersion,
-    "org.bitcoin-s" %% "bitcoin-s-bitcoind-rpc" % btcVersion
+    "org.bitcoin-s" %% "bitcoin-s-bitcoind-rpc" % btcVersion,
+    "org.bitcoin-s" %% "bitcoin-s-key-manager" % btcVersion
   )
 
   lazy val scopt: Seq[ModuleID] = Seq("com.github.scopt" %% "scopt" % "4.0.1")

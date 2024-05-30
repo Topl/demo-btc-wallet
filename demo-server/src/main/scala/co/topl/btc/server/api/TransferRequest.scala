@@ -18,7 +18,7 @@ import io.circe.Json
 /**
   * A case class representing a BTC transfer request
   */
-case class TransferRequest(fromWallet: String, toAddress: BitcoinAddress, quantity: Satoshis)
+case class TransferRequest(toAddress: BitcoinAddress, quantity: Satoshis)
 
 
 object TransferRequest {
@@ -28,10 +28,9 @@ object TransferRequest {
     implicit val decodeTransferRequest: Decoder[TransferRequest] = new Decoder[TransferRequest] {
       final def apply(c: HCursor): Decoder.Result[TransferRequest] =
         for {
-          fromWallet <- c.downField("fromWallet").as[String]
           toAddress <- c.downField("toAddress").as[String]
           quantity <- c.downField("quantity").as[Int]
-        } yield TransferRequest(fromWallet, BitcoinAddress(toAddress), Satoshis(quantity))
+        } yield TransferRequest(BitcoinAddress(toAddress), Satoshis(quantity))
     }
     implicit val decoder: EntityDecoder[IO, TransferRequest] = jsonOf[IO, TransferRequest]
 
@@ -44,7 +43,7 @@ object TransferRequest {
       */
     def handler(r: Request[IO], bitcoind: BitcoindExtended): IO[Response[IO]] = for {
       req <- r.as[TransferRequest]
-      txId <- bitcoind.sendToAddressWithFees(req.toAddress, req.quantity, req.fromWallet)
+      txId <- bitcoind.sendToAddressWithFees(req.toAddress, req.quantity)
       resp <- Ok(txId.hex)
     } yield resp
 
