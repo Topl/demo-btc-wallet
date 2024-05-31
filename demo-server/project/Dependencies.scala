@@ -8,6 +8,7 @@ object Dependencies {
   lazy val slf4jVersion = "2.0.12"
   lazy val circeVersion = "0.14.6"
   lazy val btcVersion = "1.9.7"
+  lazy val sqliteVersion = "3.43.2.1"
 
   lazy val scalaTest: Seq[ModuleID] = Seq("org.scalatest" %% "scalatest" % "3.0.5" % Test)
 
@@ -42,6 +43,10 @@ object Dependencies {
     "org.bitcoin-s" %% "bitcoin-s-core" % btcVersion,
     "org.bitcoin-s" %% "bitcoin-s-bitcoind-rpc" % btcVersion,
     "org.bitcoin-s" %% "bitcoin-s-key-manager" % btcVersion
+  )
+
+  val sqlite: Seq[ModuleID] = Seq(
+    "org.xerial" % "sqlite-jdbc" % sqliteVersion
   )
 
   lazy val scopt: Seq[ModuleID] = Seq("com.github.scopt" %% "scopt" % "4.0.1")

@@ -6,6 +6,7 @@ final case class Params(
   bitcoindUrl: String = "http://localhost", 
   bitcoindUser: String = "", 
   bitcoindPassword: String = "",
+  dbPath: String = "",
   mintTime: Int = 90 // in seconds
 )
 
@@ -31,6 +32,11 @@ object Params {
         .action((x, c) => c.copy(bitcoindPassword = x))
         .text(
           "The password to connect to a bitcoind instance. (required)"
+        ),
+      opt[String]("db-path")
+        .action((x, c) => c.copy(dbPath = x))
+        .text(
+          "The path to connect to the database instance. (requried)"
         ),
       opt[Int]("mint-time")
         .action((x, c) => c.copy(mintTime = x))

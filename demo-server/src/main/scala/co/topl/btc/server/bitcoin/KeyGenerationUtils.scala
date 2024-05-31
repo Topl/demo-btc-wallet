@@ -15,6 +15,7 @@ object KeyGenerationUtils {
      * We will further derive this key using some index to use in transactions.
     */
   def loadMainKey(
+     wallet: String, 
      bitcoind: BitcoindExtended
   ): IO[ExtPrivateKey] = for {
     walletPrivateDescriptors <- bitcoind.listDescriptors(wallet, isPrivate = true)

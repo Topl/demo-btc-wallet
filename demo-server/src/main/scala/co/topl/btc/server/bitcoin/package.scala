@@ -18,12 +18,6 @@ import org.typelevel.log4cats.slf4j.Slf4jLogger
 package object bitcoin {
     implicit val system: ActorSystem = ActorSystem("System")
 
-    /*
-     * The wallet to use in RPC calls (other than minting)
-     * There is only 1 for the demo wallet. This is the wallet associated to the Seed File 
-     */
-    val wallet: String = "default"
-
       /**
      * Connection to the bitcoind RPC server instance
      * @param network Parameters of a given network to be used
