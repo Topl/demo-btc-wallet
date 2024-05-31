@@ -15,6 +15,7 @@ import co.topl.btc.server.bitcoin.Services.mintBlock
 import co.topl.btc.server.bitcoin.BitcoindExtended.futureToIO
 import io.circe.Json
 import co.topl.btc.server.persistence.StateApi
+import co.topl.btc.server.bitcoin.Services.getTxOutForAddress
 
 object ReclaimRequest {
 
@@ -25,6 +26,7 @@ object ReclaimRequest {
 
   implicit val storeAddressRequestDecoder: EntityDecoder[IO, ReclaimRequest] =jsonOf[IO, ReclaimRequest]
 
+
     /**
       * An HTTP handler for the transfer request
       *
@@ -34,17 +36,26 @@ object ReclaimRequest {
       */
     def handler(r: Request[IO], bitcoind: BitcoindExtended, stateApi: StateApi): IO[Response[IO]] = for {
       req <- r.as[ReclaimRequest]
-      idx <- stateApi.getIndexForAddress(req.fromAddress)
-      // TODO: construct tx (involves constructing script, querying the quantity via listtransactions, generate toAddress)
-      // prove tx (construct signature)
-      // add fee
+      
+      inputData <- getTxOutForAddress(bitcoind, req.toWallet, BitcoinAddress(req.fromAddress))
+      idxOpt <- stateApi.getIndexForAddress(req.fromAddress)
+
+      resp <- (inputData, idxOpt) match {
+        case (Some((txOut, amount)), Some(idx)) => for {
+          toAddress <- futureToIO(bitcoind.getNewAddress(walletNameOpt= Some(req.toWallet)))
+        } yield ???
+        case _ => IO.pure(BadRequest("Address not found"))
+      }
+
+      // TODO: display script hex on the bridge UI
+      // store this script in this demo wallet
+      // prove tx (construct signature, serialize tx, etc)
       // broadcast
 
       // to test mint 1000 blocks
 
       // write tests
-      txId <- bitcoind.sendToAddressWithFees(req.toAddress, req.quantity, req.fromWallet)
-      resp <- Ok(txId.hex)
+      // txId <- bitcoind.sendToAddressWithFees(req.toAddress, req.quantity, req.fromWallet)
     } yield resp
 
 }

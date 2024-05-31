@@ -68,8 +68,15 @@ final class BitcoindExtended(impl: BitcoindInstance) extends BitcoindRpcClient(i
     .map(res =>(res \ "result").as[String])
     .map(DoubleSha256DigestBE.fromHex(_))
 
-  def listWalletTransactions(wallet: String): IO[Vector[ListTransactionsResult]] = 
-    bitcoindCallRaw("listtransactions", uriExtensionOpt = Some(walletExtension(wallet)))
+  def listWalletTransactions(wallet: String, count: Int = 10, skip: Int = 0): IO[Vector[ListTransactionsResult]] = 
+    bitcoindCallRaw(
+      "listtransactions", 
+      List(
+        JsString("*"), // label: * returns all
+        JsNumber(count), // count
+        JsNumber(skip) // skip
+      ), 
+      uriExtensionOpt = Some(walletExtension(wallet)))
     .map(res =>(res \ "result").as[Vector[ListTransactionsResult]])
 }
 
