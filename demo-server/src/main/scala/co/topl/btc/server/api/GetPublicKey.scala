@@ -6,16 +6,10 @@ import org.http4s._
 import org.http4s.circe._
 import org.http4s.dsl.io._
 import cats.effect.IO
-import io.circe.{ Decoder, Encoder, HCursor, Json }
 
-import org.bitcoins.core.protocol.BitcoinAddress
-import org.bitcoins.core.currency.Satoshis
 import co.topl.btc.server.bitcoin.BitcoindExtended
-import co.topl.btc.server.bitcoin.BitcoindExtended.futureToIO
-import io.circe.Json
 import co.topl.btc.server.bitcoin.KeyGenerationUtils
 import co.topl.btc.server.persistence.StateApi
-import org.bitcoins.core.number.UInt32
 
 
 object GetPublicKey {
@@ -32,14 +26,8 @@ object GetPublicKey {
     */
   def handler(wallet: String, bitcoind: BitcoindExtended, stateApi: StateApi): IO[Response[IO]] = for {
     mainPrivKey <- KeyGenerationUtils.loadMainKey(wallet, bitcoind)
-    nextIdx <- {
-      println(mainPrivKey)
-      stateApi.getNextIndex()
-    }
-    childPubKey = {
-      println(nextIdx)
-      mainPrivKey.deriveChildPrivKey(UInt32(nextIdx)).publicKey
-    }
+    nextIdx <- stateApi.getNextIndex()
+    childPubKey = KeyGenerationUtils.generatePublicKey(mainPrivKey, nextIdx)
     resp <- Ok(GetPublicKeyResponse(childPubKey.hex, nextIdx.toInt).asJson)
   } yield resp
 

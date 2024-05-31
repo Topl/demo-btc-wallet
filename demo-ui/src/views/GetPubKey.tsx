@@ -56,7 +56,6 @@ const GetPubKey: FunctionComponent<WalletProps> =  ({walletName}) => {
         <Form onSubmit={handleGenerate}>
           <Form.Group className="mb-3" controlId="walletName" hidden>
             <Form.Label>Local Wallet</Form.Label>
-            {/* Hardcoding wallet to default */}
             <Form.Control type="text" value={walletName} name='fromWallet' readOnly/>
             <Form.Text className="text-muted">
               The wallet where the BTC will be sent from.

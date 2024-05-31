@@ -13,3 +13,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Call bridge WS when peg-in funds are deposited
 - Added a "View Wallet" page on the front end
 - Added public key generation tooling: API endpoint and page in the UI
+- Added page to reclaim peg-in deposit

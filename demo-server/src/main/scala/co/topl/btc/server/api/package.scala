@@ -26,6 +26,7 @@ package object api {
   // Define the API service routes
   def apiService(bitcoind: BitcoindExtended, wsClient: BridgeWSClient, stateApi: StateApi): HttpRoutes[IO] = HttpRoutes.of[IO] {
     case r @ POST -> Root / "transfer" => TransferRequest.handler(r, bitcoind)
+    case r @ POST -> Root / "reclaim" => ReclaimRequest.handler(r, bitcoind, stateApi)
     case GET -> Root / "getBalances" / walletName => FetchBalances.handler(walletName, bitcoind)
     case GET -> Root / "getPk" / walletName => GetPublicKey.handler(walletName, bitcoind, stateApi)
     case r @ POST -> Root / "storeAddress" => StoreAddress.handler(r, bitcoind, stateApi)
