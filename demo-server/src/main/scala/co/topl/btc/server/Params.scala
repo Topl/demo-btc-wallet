@@ -34,9 +34,10 @@ object Params {
           "The password to connect to a bitcoind instance. (required)"
         ),
       opt[String]("db-path")
+        .required()
         .action((x, c) => c.copy(dbPath = x))
         .text(
-          "The path to connect to the database instance. (requried)"
+          "The path to connect to the database instance. (required)"
         ),
       opt[Int]("mint-time")
         .action((x, c) => c.copy(mintTime = x))

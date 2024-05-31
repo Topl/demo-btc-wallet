@@ -32,8 +32,14 @@ object GetPublicKey {
     */
   def handler(wallet: String, bitcoind: BitcoindExtended, stateApi: StateApi): IO[Response[IO]] = for {
     mainPrivKey <- KeyGenerationUtils.loadMainKey(wallet, bitcoind)
-    nextIdx <- stateApi.getNextIndex()
-    childPubKey = mainPrivKey.deriveChildPrivKey(UInt32(nextIdx)).publicKey
+    nextIdx <- {
+      println(mainPrivKey)
+      stateApi.getNextIndex()
+    }
+    childPubKey = {
+      println(nextIdx)
+      mainPrivKey.deriveChildPrivKey(UInt32(nextIdx)).publicKey
+    }
     resp <- Ok(GetPublicKeyResponse(childPubKey.hex, nextIdx.toInt).asJson)
   } yield resp
 

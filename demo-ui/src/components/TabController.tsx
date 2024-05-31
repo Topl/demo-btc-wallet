@@ -1,5 +1,6 @@
 import Transfer from '../views/Transfer';
 import Wallet from '../views/Wallet';
+import GetPubKey from '../views/GetPubKey';
 import Tab from 'react-bootstrap/Tab';
 import SideBar from './SideBar';
 import { useState } from 'react';
@@ -18,6 +19,7 @@ function TabController() {
     <SideBar updateWallet={updateWallet}/>
     <Tab.Content className='basis-11/12 '>
       <Tab.Pane eventKey="view"><Wallet balances={balances} transactions={transactions}/></Tab.Pane>
+      <Tab.Pane eventKey="getPubKey"><GetPubKey walletName={walletName}/></Tab.Pane>
       <Tab.Pane eventKey="transfer"><Transfer walletName={walletName}/></Tab.Pane>
     </Tab.Content>
   </Tab.Container> 

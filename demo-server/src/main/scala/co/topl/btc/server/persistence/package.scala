@@ -49,7 +49,7 @@ package object persistence {
         for {
           stmt <- IO.delay(conn.createStatement())
           rs <- IO.delay(stmt.executeQuery(s"SELECT idx FROM state WHERE address = '$address'"))
-          idx <- IO.delay(rs.getInt("idx")) // if the value is SQL NULL, the value returned is 0
+          idx <- IO.delay(rs.getInt("idx"))
           _ <- IO.delay(stmt.close())
         } yield if(rs.next()) Some(idx) else None
       }
@@ -57,8 +57,8 @@ package object persistence {
       def getNextIndex(): IO[Int] = connResource.use { conn =>
         for {
           stmt <- IO.delay(conn.createStatement())
-          rs <- IO.delay(stmt.executeQuery("SELECT MAX(idx) AS index"))
-          idx <- IO.delay(rs.getInt("index")) // if the value is SQL NULL, the value returned is 0
+          rs <-  IO.delay(stmt.executeQuery("SELECT MAX(idx) + 1 AS max_idx FROM state"))
+          idx <- IO.delay(rs.getInt("max_idx")) // if the value is SQL NULL, the value returned is 0
           _ <- IO.delay(stmt.close())
         } yield idx
       }

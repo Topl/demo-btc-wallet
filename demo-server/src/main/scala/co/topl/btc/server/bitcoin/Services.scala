@@ -20,7 +20,7 @@ object Services {
   def initializeWallets(bitcoind: BitcoindExtended): IO[Unit] = for {
     allWallets <- bitcoind.listWalletDirs()
     _ <- if(allWallets.contains(MintingWallet)) IO.unit else futureToIO(bitcoind.createWallet(MintingWallet))
-    _ <- if(allWallets.contains(DefaultWallet)) IO.unit else futureToIO(bitcoind.createWallet(DefaultWallet))
+    _ <- if(allWallets.contains(DefaultWallet)) IO.unit else futureToIO(bitcoind.createWallet(DefaultWallet, descriptors=true))
     loadedWallets <- futureToIO(bitcoind.listWallets)
     unloadedWallets = allWallets.filterNot(loadedWallets.contains)
     res <- unloadedWallets.map(bitcoind.loadWallet).map(futureToIO).sequence
