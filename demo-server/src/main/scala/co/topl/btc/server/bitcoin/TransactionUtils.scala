@@ -24,6 +24,7 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.{Failure, Random, Success, Try}
 import co.topl.btc.server.bitcoin.BitcoindExtended.futureToIO
+import org.bitcoins.core.wallet.fee.SatoshisPerByte
 
 object Builders {
   def buildUnprovenReclaimTx(
@@ -38,9 +39,8 @@ object Builders {
     val outputs = Map(toAddr -> fromAmount)
     for {
       tx <- futureToIO(bitcoind.createRawTransaction(Vector(input), outputs))
-      feeRate <- futureToIO(bitcoind.getFeeRate())
-      fee = feeRate.calc(tx)
-      outputsWithFee = Map(toAddr -> Bitcoins((fromAmount - fee).satoshis))
+      fee <- futureToIO(bitcoind.getNetworkInfo)
+      outputsWithFee = Map(toAddr -> Bitcoins((fromAmount - fee.relayfee).satoshis))
       txWithFee <- futureToIO(bitcoind.createRawTransaction(Vector(input), outputsWithFee))
     } yield txWithFee
   }

@@ -73,7 +73,7 @@ object Services {
   def getTxOutForAddress(bitcoind: BitcoindExtended, wallet: String, address: BitcoinAddress): IO[Option[(TransactionOutPoint, Bitcoins, Int)]] = for {
     res <- findTx(bitcoind, wallet, address, 10, 0)
     txOut = res.flatMap(txRes => (txRes.txid, txRes.vout, txRes.confirmations, txRes.amount) match {
-      case (Some(txId), Some(vout), Some(conf), amount) => Some((TransactionOutPoint(txId, UInt32(vout)), amount, conf))
+      case (Some(txId), Some(vout), Some(conf), amount) => Some((TransactionOutPoint(txId, UInt32(vout)), Bitcoins((amount*(-1)).satoshis), conf)) // *(-1) since "send" category shows negative amount
       case _ => None
     })
   } yield txOut
