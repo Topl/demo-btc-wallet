@@ -14,6 +14,10 @@ import org.bitcoins.core.util.BytesUtil
 import org.bitcoins.crypto._
 import play.api.libs.json._
 import scodec.bits.ByteVector
+import org.bitcoins.core.crypto.ExtPrivateKey
+import org.bitcoins.core.protocol.script.{NonStandardScriptSignature, ScriptSignature}
+import org.bitcoins.core.script.constant.{OP_0, ScriptConstant}
+import org.bitcoins.core.protocol.script.P2WSHWitnessV0
 
 import java.security.MessageDigest
 import scala.concurrent.duration.Duration
@@ -41,10 +45,30 @@ object Builders {
     } yield txWithFee
   }
 
-  def getTxSignature(unsignedTx: Transaction, script: RawScriptPubKey, privateKey: String, inputAmount: CurrencyUnit): ECDigitalSignature = {
+  def proveReclaimTx(unsignedTx: Transaction, mainKey: ExtPrivateKey, script: RawScriptPubKey, idx: Int, inputAmount: CurrencyUnit): WitnessTransaction = {
+    val txSignature = getTxSignature(unsignedTx, mainKey, script, idx, inputAmount)
+    // Hardcoded to satify the following descriptor: or(and(pk(A),older(1000)),and(pk(B),sha256(H)))
+    // or the miniscript: andor(pk(A),older(1000),and_v(v:pk(B),sha256(H)))
+    /**
+    <UserPk> OP_CHECKSIG OP_NOTIF
+      <BridgePk> OP_CHECKSIGVERIFY OP_SIZE <20> OP_EQUALVERIFY OP_SHA256 <H>
+      OP_EQUAL
+    OP_ELSE
+      <e803> OP_CHECKSEQUENCEVERIFY
+    OP_ENDIF
+     */
+    val reclaimProof = NonStandardScriptSignature.fromAsm(
+      Seq(
+        ScriptConstant(txSignature.hex), // To satisfy the user's vk
+      )
+    )
+    WitnessTransaction.toWitnessTx(unsignedTx).updateWitness(0, P2WSHWitnessV0(script, reclaimProof))
+  }
+
+  def getTxSignature(unsignedTx: Transaction, mainKey: ExtPrivateKey, script: RawScriptPubKey, idx: Int, inputAmount: CurrencyUnit): ECDigitalSignature = {
     val serializedTxForSignature = serializeForSignature(unsignedTx, inputAmount, script.asm)
     val signableBytes = CryptoUtil.doubleSHA256(serializedTxForSignature)
-    val signature = ECPrivateKey.fromHex(privateKey).sign(signableBytes.bytes)
+    val signature = KeyGenerationUtils.signWithMainKey(mainKey, signableBytes.bytes, idx)
     // append 1 byte hash type onto the end, per BIP-066
     ECDigitalSignature(signature.bytes ++ ByteVector.fromByte(HashType.sigHashAll.byte))
   }

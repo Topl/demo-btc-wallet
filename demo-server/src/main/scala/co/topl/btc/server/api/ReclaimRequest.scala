@@ -16,6 +16,9 @@ import co.topl.btc.server.bitcoin.BitcoindExtended.futureToIO
 import io.circe.Json
 import co.topl.btc.server.persistence.StateApi
 import co.topl.btc.server.bitcoin.Services.getTxOutForAddress
+import co.topl.btc.server.bitcoin.Builders._
+import co.topl.btc.server.bitcoin.KeyGenerationUtils
+import org.bitcoins.core.protocol.script.RawScriptPubKey
 
 object ReclaimRequest {
 
@@ -34,28 +37,24 @@ object ReclaimRequest {
       * @param bitcoind The bitcoind instance to use
       * @return An IO monad containing the response
       */
-    def handler(r: Request[IO], bitcoind: BitcoindExtended, stateApi: StateApi): IO[Response[IO]] = for {
+    def handler(r: Request[IO], bitcoind: BitcoindExtended, stateApi: StateApi): IO[Response[IO]] = (for {
       req <- r.as[ReclaimRequest]
       
       inputData <- getTxOutForAddress(bitcoind, req.toWallet, BitcoinAddress(req.fromAddress))
-      idxOpt <- stateApi.getIndexForAddress(req.fromAddress)
+      infoOpt <- stateApi.getInfoForAddress(req.fromAddress)
 
-      resp <- (inputData, idxOpt) match {
-        case (Some((txOut, amount)), Some(idx)) => for {
-          toAddress <- futureToIO(bitcoind.getNewAddress(walletNameOpt= Some(req.toWallet)))
-        } yield ???
+      resp <- (inputData, infoOpt) match {
+        case (Some((txOut, amount, numConf)), Some((idx, script))) => 
+          if(numConf < 1000) IO.pure(BadRequest(s"Too early to reclaim. 1000 blocks have not yet elapsed. Number of confirmations: $numConf"))
+          else for {
+            toAddress <- futureToIO(bitcoind.getNewAddress(walletNameOpt= Some(req.toWallet)))
+            unprovenTx <- buildUnprovenReclaimTx(bitcoind, txOut, toAddress, amount)
+            mainKey <- KeyGenerationUtils.loadMainKey(req.toWallet, bitcoind)
+            provenTx = proveReclaimTx(unprovenTx, mainKey, RawScriptPubKey.fromAsmHex(script), idx, amount)
+            txId <- futureToIO(bitcoind.sendRawTransaction(provenTx))
+          } yield Ok(txId.hex)
         case _ => IO.pure(BadRequest("Address not found"))
       }
-
-      // TODO: display script hex on the bridge UI
-      // store this script in this demo wallet
-      // prove tx (construct signature, serialize tx, etc)
-      // broadcast
-
-      // to test mint 1000 blocks
-
-      // write tests
-      // txId <- bitcoind.sendToAddressWithFees(req.toAddress, req.quantity, req.fromWallet)
-    } yield resp
+    } yield resp).flatten
 
 }

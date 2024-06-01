@@ -2,6 +2,7 @@ import axios from "axios"
 
 interface AddressStoreData {
     address: string
+    script: string
     idx: number
 }
 

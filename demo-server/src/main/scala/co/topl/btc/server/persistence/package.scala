@@ -30,28 +30,30 @@ package object persistence {
       def init(): IO[Unit] = connResource.use { conn =>
         for {
           stmt <- IO.delay(conn.createStatement())
-          _ <- IO.delay(stmt.execute("CREATE TABLE IF NOT EXISTS state (id INTEGER PRIMARY KEY, address TEXT NOT NULL, idx INTEGER NOT NULL)"))
+          _ <- IO.delay(stmt.execute("CREATE TABLE IF NOT EXISTS state (id INTEGER PRIMARY KEY, address TEXT NOT NULL, script TEXT NOT NULL, idx INTEGER NOT NULL)"))
           _ <- IO.delay(stmt.execute("CREATE UNIQUE INDEX IF NOT EXISTS addresses ON state (address)"))
+          _ <- IO.delay(stmt.execute("CREATE UNIQUE INDEX IF NOT EXISTS scripts ON state (script)"))
           _ <- IO.delay(stmt.execute("CREATE UNIQUE INDEX IF NOT EXISTS indices ON state (idx)"))
           _ <- IO.delay(stmt.close())
         } yield ()
       }
 
-      def storeEscrowAddress(address: String, idx: Int): IO[Unit] = connResource.use { conn =>
+      def storeEscrowAddress(address: String, script: String, idx: Int): IO[Unit] = connResource.use { conn =>
         for {
           stmt <- IO.delay(conn.createStatement())
-          _ <- IO.delay(stmt.executeUpdate(s"INSERT INTO state (address, idx) VALUES ('$address', $idx)"))
+          _ <- IO.delay(stmt.executeUpdate(s"INSERT INTO state (address, script, idx) VALUES ('$address', `$script`, $idx)"))
           _ <- IO.delay(stmt.close())
         } yield ()
       }
 
-      def getIndexForAddress(address: String): IO[Option[Int]] = connResource.use { conn =>
+      def getIndexForAddress(address: String): IO[Option[(Int, String)]] = connResource.use { conn =>
         for {
           stmt <- IO.delay(conn.createStatement())
-          rs <- IO.delay(stmt.executeQuery(s"SELECT idx FROM state WHERE address = '$address'"))
+          rs <- IO.delay(stmt.executeQuery(s"SELECT script, idx FROM state WHERE address = '$address'"))
+          script <- IO.delay(rs.getString("script"))
           idx <- IO.delay(rs.getInt("idx"))
           _ <- IO.delay(stmt.close())
-        } yield if(rs.next()) Some(idx) else None
+        } yield if(rs.next()) Some((idx, script)) else None
       }
 
       def getNextIndex(): IO[Int] = connResource.use { conn =>

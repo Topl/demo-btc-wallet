@@ -38,6 +38,7 @@ const GetPubKey: FunctionComponent<WalletProps> =  ({walletName}) => {
     const formData = new FormData(form);
     toast.promise(storeAddress({
       address: formData.get('address') as string,
+      script: formData.get('script') as string,
       idx: idx
     }), {
       pending: "Storing information...",
@@ -87,6 +88,13 @@ const GetPubKey: FunctionComponent<WalletProps> =  ({walletName}) => {
                 <Form.Control type="text" name='address' placeholder='bcrt1...' required/>
                 <Form.Text className="text-muted">
                   The peg-in escrow address that encumbers the public key.
+                </Form.Text>
+              </Form.Group>
+              <Form.Group className="mb-3 " controlId="script">
+                <Form.Label>Escrow Script</Form.Label>
+                <Form.Control type="text" name='script' placeholder='c8d53b...' required/>
+                <Form.Text className="text-muted">
+                  The peg-in escrow script that encumbers the public key.
                 </Form.Text>
               </Form.Group>
               <Button variant="primary" type="submit" className="w-100">Save</Button>

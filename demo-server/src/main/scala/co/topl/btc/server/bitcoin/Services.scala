@@ -70,10 +70,10 @@ object Services {
     _ <- Slf4jLogger.getLogger[IO].info("Minted new block")
   } yield ()
 
-  def getTxOutForAddress(bitcoind: BitcoindExtended, wallet: String, address: BitcoinAddress): IO[Option[(TransactionOutPoint, Bitcoins)]] = for {
+  def getTxOutForAddress(bitcoind: BitcoindExtended, wallet: String, address: BitcoinAddress): IO[Option[(TransactionOutPoint, Bitcoins, Int)]] = for {
     res <- findTx(bitcoind, wallet, address, 10, 0)
-    txOut = res.flatMap(txRes => (txRes.txid, txRes.vout, txRes.amount) match {
-      case (Some(txId), Some(vout), amount) => Some((TransactionOutPoint(txId, UInt32(vout)), amount))
+    txOut = res.flatMap(txRes => (txRes.txid, txRes.vout, txRes.confirmations, txRes.amount) match {
+      case (Some(txId), Some(vout), Some(conf), amount) => Some((TransactionOutPoint(txId, UInt32(vout)), amount, conf))
       case _ => None
     })
   } yield txOut

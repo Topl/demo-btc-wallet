@@ -20,7 +20,7 @@ object StoreAddress {
   /**
     * A case class representing a Store Address request
     */
-  case class StoreAddressRequest(address: String, idx: Int)
+  case class StoreAddressRequest(address: String, script: String, idx: Int)
   
   implicit val storeAddressRequestDecoder: EntityDecoder[IO, StoreAddressRequest] =
     jsonOf[IO, StoreAddressRequest]
@@ -34,7 +34,7 @@ object StoreAddress {
     */
   def handler(r: Request[IO], bitcoind: BitcoindExtended, stateApi: StateApi): IO[Response[IO]] = for {
     req <- r.as[StoreAddressRequest]
-    _ <- stateApi.storeEscrowAddress(req.address, req.idx)
+    _ <- stateApi.storeEscrowInfo(req.address, req.script, req.idx)
     resp <- Ok()
   } yield resp
 
