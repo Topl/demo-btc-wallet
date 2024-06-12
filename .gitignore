@@ -60,3 +60,5 @@ coursier
 index.scip
 
 **/resources/static/*
+
+*.db

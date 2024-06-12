@@ -5,6 +5,12 @@ import cats.implicits._
 import co.topl.btc.server.bitcoin.BitcoindExtended.futureToIO
 import org.bitcoins.core.currency.Bitcoins
 import org.typelevel.log4cats.slf4j.Slf4jLogger
+import org.bitcoins.keymanager.WalletStorage
+import org.bitcoins.crypto.AesPassword
+import org.bitcoins.core.protocol.transaction._
+import org.bitcoins.core.protocol.{BitcoinAddress, CompactSizeUInt}
+import org.bitcoins.commons.jsonmodels.bitcoind.ListTransactionsResult
+import org.bitcoins.core.number.UInt32
 
 object Services {
   val MintingWallet = "minting"
@@ -18,7 +24,7 @@ object Services {
   def initializeWallets(bitcoind: BitcoindExtended): IO[Unit] = for {
     allWallets <- bitcoind.listWalletDirs()
     _ <- if(allWallets.contains(MintingWallet)) IO.unit else futureToIO(bitcoind.createWallet(MintingWallet))
-    _ <- if(allWallets.contains(DefaultWallet)) IO.unit else futureToIO(bitcoind.createWallet(DefaultWallet))
+    _ <- if(allWallets.contains(DefaultWallet)) IO.unit else futureToIO(bitcoind.createWallet(DefaultWallet, descriptors=true))
     loadedWallets <- futureToIO(bitcoind.listWallets)
     unloadedWallets = allWallets.filterNot(loadedWallets.contains)
     res <- unloadedWallets.map(bitcoind.loadWallet).map(futureToIO).sequence
@@ -63,5 +69,22 @@ object Services {
     _ <- futureToIO(bitcoind.generateToAddress(numBlocks, addr))
     _ <- Slf4jLogger.getLogger[IO].info("Minted new block")
   } yield ()
+
+  def getTxOutForAddress(bitcoind: BitcoindExtended, wallet: String, address: BitcoinAddress): IO[Option[(TransactionOutPoint, Bitcoins, Int)]] = for {
+    res <- findTx(bitcoind, wallet, address, 10, 0)
+    txOut = res.flatMap(txRes => (txRes.txid, txRes.vout, txRes.confirmations, txRes.amount) match {
+      case (Some(txId), Some(vout), Some(conf), amount) => Some((TransactionOutPoint(txId, UInt32(vout)), Bitcoins((amount*(-1)).satoshis), conf)) // *(-1) since "send" category shows negative amount
+      case _ => None
+    })
+  } yield txOut
+
+  private def findTx(bitcoind: BitcoindExtended, wallet: String, address: BitcoinAddress, count: Int, skip: Int): IO[Option[ListTransactionsResult]] = {
+    bitcoind.listWalletTransactions(wallet).flatMap(res => {
+      val txOut = res.find(txRes => txRes.address.contains(address) && txRes.category == "send")
+      if(txOut.isDefined) IO.pure(txOut) 
+      else if(res.length < count) IO.pure(None)
+      else findTx(bitcoind, wallet, address, count, skip + count)
+    })
+  }
 
 }

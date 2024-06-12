@@ -52,7 +52,7 @@ const Transfer: FunctionComponent<WalletProps> =  ({walletName}) => {
               The wallet where the BTC will be sent from.
             </Form.Text>
           </Form.Group>
-          <Form.Check className="mb-3">
+          <Form.Check className="mb-3 hidden">
             <Form.Label>Bridge Transfer Type</Form.Label>
             <div>
               <Form.Check

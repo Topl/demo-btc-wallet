@@ -13,7 +13,7 @@ import org.http4s.Uri._
 import org.http4s.circe._
 import org.http4s.dsl.io._
 import org.http4s.EntityEncoder
-
+import co.topl.btc.server.persistence.StateApi
 
 package object api {
   case class BridgeWSClient(client: Resource[IO, Client[IO]])
@@ -24,9 +24,12 @@ package object api {
   import cats.effect.unsafe.implicits.global
 
   // Define the API service routes
-  def apiService(bitcoind: BitcoindExtended, wsClient: BridgeWSClient): HttpRoutes[IO] = HttpRoutes.of[IO] {
+  def apiService(bitcoind: BitcoindExtended, wsClient: BridgeWSClient, stateApi: StateApi): HttpRoutes[IO] = HttpRoutes.of[IO] {
     case r @ POST -> Root / "transfer" => TransferRequest.handler(r, bitcoind)
+    case r @ POST -> Root / "reclaim" => ReclaimRequest.handler(r, bitcoind, stateApi)
     case GET -> Root / "getBalances" / walletName => FetchBalances.handler(walletName, bitcoind)
+    case GET -> Root / "getPk" / walletName => GetPublicKey.handler(walletName, bitcoind, stateApi)
+    case r @ POST -> Root / "storeAddress" => StoreAddress.handler(r, bitcoind, stateApi)
     case GET -> Root / "listTransactions" / walletName => ListTransactions.handler(walletName, bitcoind)
   }
 }

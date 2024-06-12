@@ -86,10 +86,10 @@ lazy val root = project
     scalaVersion := scalacVersion,
     organization := "co.topl",
     name := "topl-demo-btc-wallet",
-    libraryDependencies ++= http4s ++ cats ++ log4cats ++ slf4j ++ circe ++ btc ++ scopt
+    libraryDependencies ++= http4s ++ cats ++ log4cats ++ slf4j ++ circe ++ btc ++ scopt ++ sqlite
   )
   .enablePlugins(DockerPlugin, JavaAppPackaging)
   .settings(noPublish)
 
 // Development mode: reloads the server when you change the code. Use "sbt dev" to run.
-addCommandAlias("dev", "buildClient ; ~reStart --btc-user=test --btc-password=test")
+addCommandAlias("dev", "buildClient ; ~reStart --btc-user=test --btc-password=test --db-path=dev-state.db")

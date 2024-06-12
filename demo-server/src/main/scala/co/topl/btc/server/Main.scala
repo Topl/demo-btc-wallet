@@ -26,6 +26,7 @@ import org.http4s.dsl.impl.Responses
 import co.topl.btc.server.bitcoin.onStartup
 import co.topl.btc.server.bitcoin.BitcoindExtended
 import co.topl.btc.server.bitcoin.Services.mintBlock
+import co.topl.btc.server.persistence.{StateApi, connect}
 
 object Main extends IOApp {
   def webUI() = HttpRoutes.of[IO] { case request @ GET -> Root =>
@@ -33,8 +34,8 @@ object Main extends IOApp {
       .fromResource("/static/index.html", Some(request))
       .getOrElseF(InternalServerError())
   }
-  def router(bitcoind: BitcoindExtended, wsClient: BridgeWSClient) = 
-    Router.define("/api" -> apiService(bitcoind, wsClient), "/" -> webUI())(default = resourceServiceBuilder[IO]("/static").toRoutes)
+  def router(bitcoind: BitcoindExtended, wsClient: BridgeWSClient, stateApi: StateApi) = 
+    Router.define("/api" -> apiService(bitcoind, wsClient, stateApi), "/" -> webUI())(default = resourceServiceBuilder[IO]("/static").toRoutes)
 
   def mintForever(bitcoind: BitcoindExtended, delay: Int): IO[Unit] = 
     mintBlock(bitcoind).andWait(delay.seconds).foreverM
@@ -57,7 +58,8 @@ object Main extends IOApp {
     val bridgeWsClient = BridgeWSClient(
       EmberClientBuilder.default[IO].build
     )
-    onStartup(bitcoindInstance) >> (
+    val stateApi = connect(args.dbPath)
+    stateApi.init() >> onStartup(bitcoindInstance) >> (
       EmberServerBuilder
         .default[IO]
         .withIdleTimeout(ServerConfig.idleTimeOut)
@@ -65,7 +67,7 @@ object Main extends IOApp {
         .withPort(ServerConfig.port)
         .withHttpApp(
           Kleisli[IO, Request[IO], Response[IO]] { request =>
-            router(bitcoindInstance, bridgeWsClient).run(request).getOrElse(Response.notFound)
+            router(bitcoindInstance, bridgeWsClient, stateApi).run(request).getOrElse(Response.notFound)
           }
         )
         .withLogger(logger)

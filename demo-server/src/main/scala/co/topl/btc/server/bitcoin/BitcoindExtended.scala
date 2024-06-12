@@ -36,8 +36,18 @@ final class BitcoindExtended(impl: BitcoindInstance) extends BitcoindRpcClient(i
 
   def listWalletDirs(): IO[Seq[String]] = bitcoindCallRaw("listwalletdir")
     .map(res => (res \ "result" \\ "name").map(_.as[String]).toSeq)
-
   
+  def listDescriptors(walletName: String, isPrivate: Boolean): IO[List[JsValue]] =
+    bitcoindCallRaw(
+      "listdescriptors",
+      List(JsBoolean(isPrivate)),
+      uriExtensionOpt = Some(walletExtension(walletName))
+    ).map(res =>
+      (
+        res \ "result" \ "descriptors"
+      ).result.get.as[JsArray].value.toList
+    )
+
   def sendToAddressWithFees(address: BitcoinAddress, amount: CurrencyUnit, wallet: String, feeRate: Int = 1): IO[DoubleSha256DigestBE] = 
     bitcoindCallRaw(
       "sendtoaddress",
@@ -58,8 +68,15 @@ final class BitcoindExtended(impl: BitcoindInstance) extends BitcoindRpcClient(i
     .map(res =>(res \ "result").as[String])
     .map(DoubleSha256DigestBE.fromHex(_))
 
-  def listWalletTransactions(wallet: String): IO[Vector[ListTransactionsResult]] = 
-    bitcoindCallRaw("listtransactions", uriExtensionOpt = Some(walletExtension(wallet)))
+  def listWalletTransactions(wallet: String, count: Int = 10, skip: Int = 0): IO[Vector[ListTransactionsResult]] = 
+    bitcoindCallRaw(
+      "listtransactions", 
+      List(
+        JsString("*"), // label: * returns all
+        JsNumber(count), // count
+        JsNumber(skip) // skip
+      ), 
+      uriExtensionOpt = Some(walletExtension(wallet)))
     .map(res =>(res \ "result").as[Vector[ListTransactionsResult]])
 }
 
